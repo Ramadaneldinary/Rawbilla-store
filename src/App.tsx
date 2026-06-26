@@ -286,7 +286,7 @@ export default function App() {
 
       {/* القسم المميز — Auto-scroll */}
       {featuredCfg.enabled && featuredItems.length > 0 && activeCategory === 'all' && !searchQuery && (
-        <FeaturedCarousel items={featuredItems} categories={categories} title={featuredCfg.title || 'الأطباق المميزة'} subtitle={featuredCfg.subtitle} countLabel={`${featuredItems.length} ${T.featuredCountLabel || 'طبق'}`} onView={handleViewDetail} onAdd={handleSelectItem} />
+        <FeaturedCarousel items={featuredItems} categories={categories} title={featuredCfg.title || 'الأصناف المميزة'} subtitle={featuredCfg.subtitle} countLabel={`${featuredItems.length} ${T.featuredCountLabel || 'طبق'}`} onView={handleViewDetail} onAdd={handleSelectItem} />
       )}
 
       {/* عروض محدودة */}

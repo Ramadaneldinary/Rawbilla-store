@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useMemo, type ReactNode
 import { Category, MenuItem, OptionItem, DietaryFilter, DEFAULT_CATEGORIES, DEFAULT_MENU_ITEMS, DEFAULT_DIETARY_FILTERS } from '../data/menuData';
 import { calcUnitPrice } from '../utils/price';
 import { incrementOrderCount } from '../utils/social';
+import { supabase } from '../utils/supabaseClient';
 
 /* ───── Cart Item ───── */
 export interface CartItem {
@@ -217,67 +218,363 @@ interface AppState {
 const AppContext = createContext<AppState | null>(null);
 const ADMIN_CODE = 'MOD13';
 
-const LS_KEY_CATS = 'pc_categories';
-const LS_KEY_ITEMS = 'pc_menuItems';
-const LS_KEY_SETTINGS = 'pc_settings_v3';
-
-function loadJSON<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw) return JSON.parse(raw) as T;
-  } catch { /* ignore */ }
-  return fallback;
-}
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [categories, setCategories] = useState<Category[]>(() => loadJSON(LS_KEY_CATS, DEFAULT_CATEGORIES));
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => loadJSON(LS_KEY_ITEMS, DEFAULT_MENU_ITEMS));
-  const [settings, setSettings] = useState<StoreSettings>(() =>
-    loadJSON(LS_KEY_SETTINGS, {
-      logoUrl: '', whatsappNumber: '966531254475',
-      discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
-      dietaryFilters: DEFAULT_DIETARY_FILTERS,
-      featured: DEFAULT_FEATURED,
-      texts: DEFAULT_TEXTS,
-      salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
-      heroBgUrl: '',
-      heroBgEnabled: true,
-      contentBgUrl: '',
-      contentBgEnabled: true,
-      footerBgUrl: '',
-      footerBgEnabled: true,
-      footerLogoUrl: '',
-      headerBrandImgUrl: '',
-      brandText: '',
-      brandTextColor: '#5c3a1e',
-      brandImgSize: 48,
-      brandFont: '',
-      flashDeals: { enabled: false, items: [] },
-
-      recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
-    })
-  );
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [settings, setSettings] = useState<StoreSettings>({
+    logoUrl: '', whatsappNumber: '966531254475',
+    discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
+    dietaryFilters: DEFAULT_DIETARY_FILTERS,
+    featured: DEFAULT_FEATURED,
+    texts: DEFAULT_TEXTS,
+    salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+    heroBgUrl: '',
+    heroBgEnabled: true,
+    contentBgUrl: '',
+    contentBgEnabled: true,
+    footerBgUrl: '',
+    footerBgEnabled: true,
+    footerLogoUrl: '',
+    headerBrandImgUrl: '',
+    brandText: '',
+    brandTextColor: '#14b8a6',
+    brandImgSize: 48,
+    brandFont: '',
+    flashDeals: { enabled: false, items: [] },
+    recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
+  });
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  useEffect(() => { localStorage.setItem(LS_KEY_CATS, JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem(LS_KEY_ITEMS, JSON.stringify(menuItems)); }, [menuItems]);
-  useEffect(() => { localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify(settings)); }, [settings]);
+  useEffect(() => {
+    async function initDb() {
+      try {
+        let { data: cats } = await supabase.from('categories').select('*').order('sort_order', { ascending: true });
+        let { data: items } = await supabase.from('menu_items').select('*');
+        let { data: storeSettings } = await supabase.from('settings').select('*').eq('id', 'store').maybeSingle();
+
+        let resolvedCats: Category[] = [];
+        if (cats && cats.length > 0) {
+          resolvedCats = cats.map(c => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji || '',
+            emojiType: c.emoji_type as any,
+            displayMode: c.display_mode as any,
+            description: c.description || '',
+            sortOrder: c.sort_order
+          }));
+        } else {
+          resolvedCats = DEFAULT_CATEGORIES;
+          await supabase.from('categories').insert(DEFAULT_CATEGORIES.map(c => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji,
+            emoji_type: c.emojiType || 'emoji',
+            display_mode: c.displayMode || 'image-name',
+            description: c.description,
+            sort_order: c.sortOrder || 0
+          })));
+        }
+
+        let resolvedItems: MenuItem[] = [];
+        if (items && items.length > 0) {
+          resolvedItems = items.map(item => ({
+            id: item.id,
+            name: item.name,
+            nameEn: item.name_en,
+            category: item.category,
+            price: Number(item.price),
+            description: item.description || '',
+            dietary: item.dietary || [],
+            calories: item.calories || 0,
+            imageEmoji: item.image_emoji || '',
+            images: item.images || [],
+            colorClass: item.color_class || '',
+            optionGroups: item.option_groups || [],
+            featured: item.featured || false,
+            discount: item.discount ? Number(item.discount) : undefined,
+            badge: item.badge,
+            prepTime: item.prep_time,
+            qualityLabel: item.quality_label,
+            showCalories: item.show_calories !== false,
+            showPrepTime: item.show_prep_time !== false,
+            showQuality: item.show_quality !== false,
+            unit: item.unit,
+            packaging: item.packaging,
+            outOfStock: item.out_of_stock || false,
+            sku: item.sku,
+            orderCount: item.order_count || 0,
+            hidden: item.hidden || false
+          }));
+        } else {
+          resolvedItems = DEFAULT_MENU_ITEMS;
+          await supabase.from('menu_items').insert(DEFAULT_MENU_ITEMS.map(item => ({
+            id: item.id,
+            name: item.name,
+            name_en: item.nameEn || null,
+            category: item.category,
+            price: item.price,
+            description: item.description,
+            dietary: item.dietary,
+            calories: item.calories,
+            image_emoji: item.imageEmoji,
+            images: item.images,
+            color_class: item.colorClass,
+            option_groups: item.optionGroups,
+            featured: item.featured,
+            discount: item.discount || null,
+            badge: item.badge || null,
+            prep_time: item.prepTime || null,
+            quality_label: item.qualityLabel || null,
+            show_calories: item.showCalories !== false,
+            show_prep_time: item.showPrepTime !== false,
+            show_quality: item.showQuality !== false,
+            unit: item.unit || null,
+            packaging: item.packaging || null,
+            out_of_stock: item.outOfStock || false,
+            sku: item.sku || null,
+            order_count: item.orderCount || 0,
+            hidden: item.hidden || false
+          })));
+        }
+
+        let resolvedSettings: StoreSettings;
+        if (storeSettings) {
+          resolvedSettings = {
+            logoUrl: storeSettings.logo_url || '',
+            whatsappNumber: storeSettings.whatsapp_number || '966531254475',
+            discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
+            discountEnabled: storeSettings.discount_enabled !== false,
+            dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
+            featured: storeSettings.featured || DEFAULT_FEATURED,
+            texts: storeSettings.texts || DEFAULT_TEXTS,
+            salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+            heroBgUrl: storeSettings.hero_bg_url || '',
+            heroBgEnabled: storeSettings.hero_bg_enabled !== false,
+            contentBgUrl: storeSettings.content_bg_url || '',
+            contentBgEnabled: storeSettings.content_bg_enabled !== false,
+            footerBgUrl: storeSettings.footer_bg_url || '',
+            footerBgEnabled: storeSettings.footer_bg_enabled !== false,
+            footerLogoUrl: storeSettings.footer_logo_url || '',
+            headerBrandImgUrl: storeSettings.header_brand_img_url || '',
+            brandText: storeSettings.brand_text || '',
+            brandTextColor: storeSettings.brand_text_color || '#14b8a6',
+            brandImgSize: storeSettings.brand_img_size || 48,
+            brandFont: storeSettings.brand_font || '',
+            flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
+            recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
+          };
+        } else {
+          resolvedSettings = {
+            logoUrl: '', whatsappNumber: '966531254475',
+            discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
+            dietaryFilters: DEFAULT_DIETARY_FILTERS,
+            featured: DEFAULT_FEATURED,
+            texts: DEFAULT_TEXTS,
+            salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+            heroBgUrl: '',
+            heroBgEnabled: true,
+            contentBgUrl: '',
+            contentBgEnabled: true,
+            footerBgUrl: '',
+            footerBgEnabled: true,
+            footerLogoUrl: '',
+            headerBrandImgUrl: '',
+            brandText: '',
+            brandTextColor: '#14b8a6',
+            brandImgSize: 48,
+            brandFont: '',
+            flashDeals: { enabled: false, items: [] },
+            recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
+          };
+          await supabase.from('settings').insert({
+            id: 'store',
+            logo_url: resolvedSettings.logoUrl,
+            whatsapp_number: resolvedSettings.whatsappNumber,
+            discount_tiers: resolvedSettings.discountTiers,
+            discount_enabled: resolvedSettings.discountEnabled,
+            dietary_filters: resolvedSettings.dietaryFilters,
+            featured: resolvedSettings.featured,
+            texts: resolvedSettings.texts,
+            sales_rep: resolvedSettings.salesRep,
+            hero_bg_url: resolvedSettings.heroBgUrl,
+            hero_bg_enabled: resolvedSettings.heroBgEnabled,
+            content_bg_url: resolvedSettings.contentBgUrl,
+            content_bg_enabled: resolvedSettings.contentBgEnabled,
+            footer_bg_url: resolvedSettings.footerBgUrl,
+            footer_bg_enabled: resolvedSettings.footerBgEnabled,
+            footer_logo_url: resolvedSettings.footerLogoUrl,
+            header_brand_img_url: resolvedSettings.headerBrandImgUrl,
+            brand_text: resolvedSettings.brandText,
+            brand_text_color: resolvedSettings.brandTextColor,
+            brand_img_size: resolvedSettings.brandImgSize,
+            brand_font: resolvedSettings.brandFont,
+            flash_deals: resolvedSettings.flashDeals,
+            recommendations: resolvedSettings.recommendations
+          });
+        }
+
+        setCategories(resolvedCats);
+        setMenuItems(resolvedItems);
+        setSettings(resolvedSettings);
+      } catch (err) {
+        console.error('Failed to init/fetch database from Supabase:', err);
+      }
+    }
+    initDb();
+  }, []);
 
   const login = (code: string) => { if (code === ADMIN_CODE) { setIsAdmin(true); return true; } return false; };
   const logout = () => setIsAdmin(false);
 
-  const addCategory = (cat: Category) => setCategories(prev => [...prev, cat]);
-  const updateCategory = (id: string, patch: Partial<Category>) => setCategories(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
-  const deleteCategory = (id: string) => { setCategories(prev => prev.filter(c => c.id !== id)); setMenuItems(prev => prev.filter(m => m.category !== id)); };
+  const addCategory = async (cat: Category) => {
+    setCategories(prev => [...prev, cat]);
+    await supabase.from('categories').insert({
+      id: cat.id,
+      name: cat.name,
+      emoji: cat.emoji,
+      emoji_type: cat.emojiType || 'emoji',
+      display_mode: cat.displayMode || 'image-name',
+      description: cat.description,
+      sort_order: cat.sortOrder || 0
+    });
+  };
 
-  const addMenuItem = (item: MenuItem) => setMenuItems(prev => [...prev, item]);
-  const updateMenuItem = (id: string, patch: Partial<MenuItem>) => setMenuItems(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
-  const deleteMenuItem = (id: string) => setMenuItems(prev => prev.filter(m => m.id !== id));
+  const updateCategory = async (id: string, patch: Partial<Category>) => {
+    setCategories(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
+    await supabase.from('categories').update({
+      name: patch.name,
+      emoji: patch.emoji,
+      emoji_type: patch.emojiType,
+      display_mode: patch.displayMode,
+      description: patch.description,
+      sort_order: patch.sortOrder
+    }).eq('id', id);
+  };
+
+  const deleteCategory = async (id: string) => {
+    setCategories(prev => prev.filter(c => c.id !== id));
+    setMenuItems(prev => prev.filter(m => m.category !== id));
+    await supabase.from('categories').delete().eq('id', id);
+  };
+
+  const addMenuItem = async (item: MenuItem) => {
+    setMenuItems(prev => [...prev, item]);
+    await supabase.from('menu_items').insert({
+      id: item.id,
+      name: item.name,
+      name_en: item.nameEn,
+      category: item.category,
+      price: item.price,
+      description: item.description,
+      dietary: item.dietary,
+      calories: item.calories,
+      image_emoji: item.imageEmoji,
+      images: item.images,
+      color_class: item.colorClass,
+      option_groups: item.optionGroups,
+      featured: item.featured,
+      discount: item.discount,
+      badge: item.badge,
+      prep_time: item.prepTime,
+      quality_label: item.qualityLabel,
+      show_calories: item.showCalories,
+      show_prep_time: item.showPrepTime,
+      show_quality: item.showQuality,
+      unit: item.unit,
+      packaging: item.packaging,
+      out_of_stock: item.outOfStock,
+      sku: item.sku,
+      order_count: item.orderCount,
+      hidden: item.hidden
+    });
+  };
+
+  const updateMenuItem = async (id: string, patch: Partial<MenuItem>) => {
+    setMenuItems(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
+    const updateData: any = {};
+    if (patch.name !== undefined) updateData.name = patch.name;
+    if (patch.nameEn !== undefined) updateData.name_en = patch.nameEn;
+    if (patch.category !== undefined) updateData.category = patch.category;
+    if (patch.price !== undefined) updateData.price = patch.price;
+    if (patch.description !== undefined) updateData.description = patch.description;
+    if (patch.dietary !== undefined) updateData.dietary = patch.dietary;
+    if (patch.calories !== undefined) updateData.calories = patch.calories;
+    if (patch.imageEmoji !== undefined) updateData.image_emoji = patch.imageEmoji;
+    if (patch.images !== undefined) updateData.images = patch.images;
+    if (patch.colorClass !== undefined) updateData.color_class = patch.colorClass;
+    if (patch.optionGroups !== undefined) updateData.option_groups = patch.optionGroups;
+    if (patch.featured !== undefined) updateData.featured = patch.featured;
+    if (patch.discount !== undefined) updateData.discount = patch.discount;
+    if (patch.badge !== undefined) updateData.badge = patch.badge;
+    if (patch.prepTime !== undefined) updateData.prep_time = patch.prepTime;
+    if (patch.qualityLabel !== undefined) updateData.quality_label = patch.qualityLabel;
+    if (patch.showCalories !== undefined) updateData.show_calories = patch.showCalories;
+    if (patch.showPrepTime !== undefined) updateData.show_prep_time = patch.showPrepTime;
+    if (patch.showQuality !== undefined) updateData.show_quality = patch.showQuality;
+    if (patch.unit !== undefined) updateData.unit = patch.unit;
+    if (patch.packaging !== undefined) updateData.packaging = patch.packaging;
+    if (patch.outOfStock !== undefined) updateData.out_of_stock = patch.outOfStock;
+    if (patch.sku !== undefined) updateData.sku = patch.sku;
+    if (patch.orderCount !== undefined) updateData.order_count = patch.orderCount;
+    if (patch.hidden !== undefined) updateData.hidden = patch.hidden;
+
+    await supabase.from('menu_items').update(updateData).eq('id', id);
+  };
+
+  const deleteMenuItem = async (id: string) => {
+    setMenuItems(prev => prev.filter(m => m.id !== id));
+    await supabase.from('menu_items').delete().eq('id', id);
+  };
 
   /** Batch replace — for import */
-  const replaceCategories = (cats: Category[]) => setCategories(cats);
-  const replaceMenuItems = (items: MenuItem[]) => setMenuItems(items);
+  const replaceCategories = async (cats: Category[]) => {
+    setCategories(cats);
+    await supabase.from('categories').delete().neq('id', '');
+    await supabase.from('categories').insert(cats.map(c => ({
+      id: c.id,
+      name: c.name,
+      emoji: c.emoji,
+      emoji_type: c.emojiType || 'emoji',
+      display_mode: c.displayMode || 'image-name',
+      description: c.description,
+      sort_order: c.sortOrder || 0
+    })));
+  };
+
+  const replaceMenuItems = async (items: MenuItem[]) => {
+    setMenuItems(items);
+    await supabase.from('menu_items').delete().neq('id', '');
+    await supabase.from('menu_items').insert(items.map(item => ({
+      id: item.id,
+      name: item.name,
+      name_en: item.nameEn,
+      category: item.category,
+      price: item.price,
+      description: item.description,
+      dietary: item.dietary,
+      calories: item.calories,
+      image_emoji: item.imageEmoji,
+      images: item.images,
+      color_class: item.colorClass,
+      option_groups: item.optionGroups,
+      featured: item.featured,
+      discount: item.discount,
+      badge: item.badge,
+      prep_time: item.prepTime,
+      quality_label: item.qualityLabel,
+      show_calories: item.showCalories,
+      show_prep_time: item.showPrepTime,
+      show_quality: item.showQuality,
+      unit: item.unit,
+      packaging: item.packaging,
+      out_of_stock: item.outOfStock,
+      sku: item.sku,
+      order_count: item.orderCount,
+      hidden: item.hidden
+    })));
+  };
 
   const addToCart = (item: MenuItem, selectedOptions: OptionItem[]) => {
     // Increment order counter
@@ -296,7 +593,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: string) => setCart(prev => prev.filter(ci => ci.id !== id));
   const updateCartNotes = (id: string, notes: string) => setCart(prev => prev.map(ci => ci.id === id ? { ...ci, notes } : ci));
   const clearCart = () => setCart([]);
-  const updateSettings = (s: Partial<StoreSettings>) => setSettings(prev => ({ ...prev, ...s }));
+  
+  const updateSettings = async (patch: Partial<StoreSettings>) => {
+    setSettings(prev => {
+      const next = { ...prev, ...patch };
+      supabase.from('settings').upsert({
+        id: 'store',
+        logo_url: next.logoUrl,
+        whatsapp_number: next.whatsappNumber,
+        discount_tiers: next.discountTiers,
+        discount_enabled: next.discountEnabled,
+        dietary_filters: next.dietaryFilters,
+        featured: next.featured,
+        texts: next.texts,
+        sales_rep: next.salesRep,
+        hero_bg_url: next.heroBgUrl,
+        hero_bg_enabled: next.heroBgEnabled,
+        content_bg_url: next.contentBgUrl,
+        content_bg_enabled: next.contentBgEnabled,
+        footer_bg_url: next.footerBgUrl,
+        footer_bg_enabled: next.footerBgEnabled,
+        footer_logo_url: next.footerLogoUrl,
+        header_brand_img_url: next.headerBrandImgUrl,
+        brand_text: next.brandText,
+        brand_text_color: next.brandTextColor,
+        brand_img_size: next.brandImgSize,
+        brand_font: next.brandFont,
+        flash_deals: next.flashDeals,
+        recommendations: next.recommendations
+      }).then();
+      return next;
+    });
+  };
+
 
   /* ═══ Featured Items — resolved list ═══ */
   const featuredItems = useMemo(() => {

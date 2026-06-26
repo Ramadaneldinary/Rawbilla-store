@@ -20,7 +20,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [tierForm, setTierForm] = useState<Partial<DiscountTier>>({}); const [editingTierId, setEditingTierId] = useState<string|null>(null); const [showTierForm, setShowTierForm] = useState(false);
   const [dietForm, setDietForm] = useState<Partial<DietaryFilter>>({}); const [editingDietId, setEditingDietId] = useState<string|null>(null); const [showDietForm, setShowDietForm] = useState(false);
   const dietaryFilters = ctx.settings.dietaryFilters || [];
-  const featuredCfg: FeaturedConfig = ctx.settings.featured || { title: 'الأطباق المميزة', subtitle: '', enabled: true, itemIds: [], style: 'scroll' };
+  const featuredCfg: FeaturedConfig = ctx.settings.featured || { title: 'الأصناف المميزة', subtitle: '', enabled: true, itemIds: [], style: 'scroll' };
   const [featTitle, setFeatTitle] = useState(featuredCfg.title);
   const [featSubtitle, setFeatSubtitle] = useState(featuredCfg.subtitle);
   const salesRep = ctx.settings.salesRep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' };

@@ -68,7 +68,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
             <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
             <span className="logo-sub-fade" style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: cfg.sub, color: '#92400e', whiteSpace: 'nowrap' as const }}>
-              شريك لألذ الحلويات والشوكولا
+              
             </span>
             <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
           </div>
@@ -103,7 +103,7 @@ export function FooterLogo() {
             <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: 17, marginLeft: 3, color: '#d97706' }}>Chef</span>
           </div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 9, color: '#92400e', marginTop: 2 }}>
-            شريك لألذ الحلويات والشوكولا
+            
           </span>
         </div>
       )}

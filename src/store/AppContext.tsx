@@ -636,7 +636,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       footer_logo_url: next.footerLogoUrl,
       header_brand_img_url: next.headerBrandImgUrl,
       brand_text: next.brandText,
-      brand_textColor: next.brandTextColor,
+      brand_text_color: next.brandTextColor,
       brand_img_size: next.brandImgSize,
       brand_font: next.brandFont,
       flash_deals: next.flashDeals,

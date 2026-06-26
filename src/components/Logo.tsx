@@ -42,7 +42,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
             style={{ background: 'linear-gradient(135deg, #f59e0b40, #ea580c40, #f59e0b40)', filter: 'blur(6px)' }} />
           <img
             src={resolvedLogo}
-            alt="PerfectChef"
+            alt="RAWBILLA"
             className="relative hover:scale-105 transition-transform duration-500"
             style={{ width: cfg.img, height: cfg.img, objectFit: 'contain', flexShrink: 0, borderRadius: 14 }}
             crossOrigin="anonymous" referrerPolicy="no-referrer"
@@ -62,7 +62,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span className="logo-text-shimmer" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: cfg.title, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>PERFECT</span>
+            <span className="logo-text-shimmer" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: cfg.title, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>RAWBILLA</span>
             <span className="logo-chef-glow" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: cfg.chef, marginLeft: 3 }}>Chef</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
@@ -99,7 +99,7 @@ export function FooterLogo() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: 17, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#5c3a1e' }}>PERFECT</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: 17, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#5c3a1e' }}>RAWBILLA</span>
             <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: 17, marginLeft: 3, color: '#d97706' }}>Chef</span>
           </div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 9, color: '#92400e', marginTop: 2 }}>

@@ -413,7 +413,7 @@ export default function App() {
           )}
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-4 text-xs font-bold" style={{ color: '#92400e' }}>
-              <span>© {new Date().getFullYear()} {T.footerBrandName || 'PerfectChef'}</span><span>•</span><span>{T.footerCopyright || 'جميع الحقوق محفوظة'}</span>
+              <span>© {new Date().getFullYear()} {T.footerBrandName || 'RAWBILLA'}</span><span>•</span><span>{T.footerCopyright || 'جميع الحقوق محفوظة'}</span>
             </div>
             <p className="text-[10px] font-medium" style={{ color: '#b45309' }}>{T.footerTagline}</p>
             <div className="flex flex-wrap items-center justify-center gap-2 mt-1">

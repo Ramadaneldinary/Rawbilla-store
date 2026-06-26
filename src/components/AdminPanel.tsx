@@ -152,7 +152,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               {/* Footer Logo/Image */}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
                 <h4 className="text-xs font-black text-amber-800 flex items-center gap-1.5">🖼️ صورة/لوجو أسفل الصفحة (الفوتر)</h4>
-                <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص PerfectChef في الفوتر — اتركه فارغاً لاستخدام النص</p>
+                <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA في الفوتر — اتركه فارغاً لاستخدام النص</p>
                 <input value={footerLogoInput} onChange={e => setFooterLogoInput(e.target.value)} placeholder="رابط صورة الفوتر (اختياري)" className="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                 <div className="flex gap-2">
                   <button onClick={() => ctx.updateSettings({ footerLogoUrl: footerLogoInput })} className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs cursor-pointer transition flex items-center gap-1.5"><Save className="w-3 h-3" /> حفظ</button>
@@ -218,23 +218,23 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 <h4 className="text-xs font-black text-blue-800 flex items-center gap-1.5 mb-1"><Type className="w-4 h-4" /> تعديل النصوص والعبارات</h4>
                 {([
                   { key: 'menuTitle' as const, label: 'عنوان القائمة (شريط علوي)', ph: 'قائمة الطعام' },
-                  { key: 'heroTitle' as const, label: 'العنوان الرئيسي', ph: 'اكتشف أطباقنا المميزة' },
+                  { key: 'heroTitle' as const, label: 'العنوان الرئيسي', ph: 'اكتشف منتجاتنا المميزة' },
                   { key: 'heroSubtitle' as const, label: 'الوصف الفرعي', ph: 'اختر من تشكيلتنا...' },
-                  { key: 'searchPlaceholder' as const, label: 'نص خانة البحث', ph: 'ابحث عن أطباق...' },
+                  { key: 'searchPlaceholder' as const, label: 'نص خانة البحث', ph: 'ابحث عن أصناف...' },
                   { key: 'categoriesLabel' as const, label: 'عنوان التصنيفات', ph: 'التصنيفات' },
                   { key: 'footerTagline' as const, label: 'عبارة أسفل الصفحة', ph: 'صُنع من شغف...' },
-                  { key: 'productPopularText' as const, label: 'نص "الأكثر طلباً" عند فتح المنتج', ph: '✨ من أكثر الأطباق طلباً...' },
+                  { key: 'productPopularText' as const, label: 'نص "الأكثر طلباً" عند فتح المنتج', ph: '✨ من أكثر الأصناف طلباً...' },
                   { key: 'featuredCountLabel' as const, label: 'وحدة العد في القسم المميز', ph: 'طبق' },
                   { key: 'cartEmptyText' as const, label: 'نص السلة فارغة', ph: 'السلة فارغة' },
-                  { key: 'cartEmptyHint' as const, label: 'وصف السلة الفارغة', ph: 'اكتشف قائمتنا وأضف أطباقك المفضلة' },
+                  { key: 'cartEmptyHint' as const, label: 'وصف السلة الفارغة', ph: 'اكتشف قائمتنا وأضف أصنافك المفضلة' },
                   { key: 'discountHint' as const, label: 'نص تحفيز الخصم ({qty}=الكمية {pct}=النسبة)', ph: 'أضف {qty} قطع للحصول على خصم {pct}%' },
-                  { key: 'notePlaceholder' as const, label: 'نص الملاحظة في السلة', ph: 'مثال: حار جداً، بدون بصل...' },
+                  { key: 'notePlaceholder' as const, label: 'نص الملاحظة في السلة', ph: 'مثال: موقع التوصيل، الوقت...' },
                   { key: 'footerCopyright' as const, label: 'نص حقوق الفوتر', ph: 'جميع الحقوق محفوظة' },
                   { key: 'footerBadge1' as const, label: 'شارة الفوتر 1', ph: 'طلب آمن' },
                   { key: 'footerBadge2' as const, label: 'شارة الفوتر 2', ph: 'توصيل سريع' },
                   { key: 'footerBadge3' as const, label: 'شارة الفوتر 3', ph: 'ضمان الجودة' },
                   { key: 'footerContactBtn' as const, label: 'نص زر التواصل', ph: 'تواصل معنا' },
-                  { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'PerfectChef' },
+                  { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'RAWBILLA' },
                   { key: 'contactTitle' as const, label: 'عنوان قائمة التواصل', ph: 'اختر طريقة التواصل' },
                   { key: 'contactWhatsApp' as const, label: 'نص واتساب', ph: 'واتساب' },
                   { key: 'contactWhatsAppHint' as const, label: 'وصف واتساب', ph: 'إرسال رسالة فورية' },

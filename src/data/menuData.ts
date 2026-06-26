@@ -76,21 +76,21 @@ const COLOR_PRESETS = [
 export { COLOR_PRESETS };
 
 export const DEFAULT_DIETARY_FILTERS: DietaryFilter[] = [
-  { id: 'V',  label: 'نباتي',          icon: '🌱',  iconType: 'emoji', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', enabled: true },
-  { id: 'VG', label: 'نباتي لبني',     icon: '🥗',  iconType: 'emoji', color: 'bg-lime-100 text-lime-800 border-lime-300',         enabled: true },
-  { id: 'GF', label: 'خالي الغلوتين',  icon: '🌾',  iconType: 'emoji', color: 'bg-amber-100 text-amber-800 border-amber-300',      enabled: true },
-  { id: 'DF', label: 'خالي الألبان',   icon: '🥛',  iconType: 'emoji', color: 'bg-blue-100 text-blue-800 border-blue-300',         enabled: true },
-  { id: 'NF', label: 'خالي المكسرات',  icon: '🥜',  iconType: 'emoji', color: 'bg-teal-100 text-teal-800 border-teal-300',         enabled: true },
-  { id: 'S',  label: 'حار',            icon: '🌶️', iconType: 'emoji', color: 'bg-red-100 text-red-800 border-red-300',            enabled: true },
+  { id: 'V',  label: 'الشوكولا',          icon: '🌱',  iconType: 'emoji', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', enabled: true },
+  { id: 'VG', label: 'الحشوات',     icon: '🥗',  iconType: 'emoji', color: 'bg-lime-100 text-lime-800 border-lime-300',         enabled: true },
+  { id: 'GF', label: 'الخليط',  icon: '🌾',  iconType: 'emoji', color: 'bg-amber-100 text-amber-800 border-amber-300',      enabled: true },
+  { id: 'DF', label: 'مشتقات الحلويات',   icon: '🥛',  iconType: 'emoji', color: 'bg-blue-100 text-blue-800 border-blue-300',         enabled: true },
+  { id: 'NF', label: 'أيس كريم',  icon: '🥜',  iconType: 'emoji', color: 'bg-teal-100 text-teal-800 border-teal-300',         enabled: true },
+  { id: 'S',  label: 'بسكويت',            icon: '🌶️', iconType: 'emoji', color: 'bg-red-100 text-red-800 border-red-300',            enabled: true },
 ];
 
 /* ───── Keep a static fallback for backward compat ───── */
 export const DIETARY_INFO = DEFAULT_DIETARY_FILTERS;
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'appetizers', name: 'المقبلات', emoji: '🥟', description: 'ابدأ وجبتك بهذه الأطباق اللذيذة' },
-  { id: 'salads', name: 'السلطات والشوربات', emoji: '🥗', description: 'خيارات طازجة وصحية' },
-  { id: 'mains', name: 'الأطباق الرئيسية', emoji: '🍽️', description: 'أشهر أطباق الشيف المميزة' },
+  { id: 'appetizers', name: 'الشوكولا', emoji: '🥟', description: 'ابدأ وجبتك بهذه الأصناف اللذيذة' },
+  { id: 'salads', name: 'الحشوات', emoji: '🥗', description: 'خيارات طازجة وصحية' },
+  { id: 'mains', name: 'الأطباق الرئيسية', emoji: '🍽️', description: 'أشهر الأصناف المميزة' },
   { id: 'sides', name: 'الإضافات', emoji: '🍟', description: 'إضافات مثالية لأي وجبة' },
   { id: 'desserts', name: 'الحلويات', emoji: '🍰', description: 'حلويات شهية لختام رائع' },
   { id: 'beverages', name: 'المشروبات', emoji: '🥤', description: 'مشروبات منعشة ومحضرة بعناية' }

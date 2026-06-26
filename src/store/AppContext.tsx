@@ -220,8 +220,8 @@ const ADMIN_CODE = 'MOD13';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(DEFAULT_MENU_ITEMS);
   const [settings, setSettings] = useState<StoreSettings>({
     logoUrl: '', whatsappNumber: '966531254475',
     discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
@@ -249,175 +249,186 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function initDb() {
       try {
-        let { data: cats } = await supabase.from('categories').select('*').order('sort_order', { ascending: true });
-        let { data: items } = await supabase.from('menu_items').select('*');
-        let { data: storeSettings } = await supabase.from('settings').select('*').eq('id', 'store').maybeSingle();
+        const [catsRes, itemsRes, settingsRes] = await Promise.all([
+          supabase.from('categories').select('*').order('sort_order', { ascending: true }),
+          supabase.from('menu_items').select('*'),
+          supabase.from('settings').select('*').eq('id', 'store').maybeSingle()
+        ]);
 
-        let resolvedCats: Category[] = [];
-        if (cats && cats.length > 0) {
-          resolvedCats = cats.map(c => ({
-            id: c.id,
-            name: c.name,
-            emoji: c.emoji || '',
-            emojiType: c.emoji_type as any,
-            displayMode: c.display_mode as any,
-            description: c.description || '',
-            sortOrder: c.sort_order
-          }));
-        } else {
-          resolvedCats = DEFAULT_CATEGORIES;
-          await supabase.from('categories').insert(DEFAULT_CATEGORIES.map(c => ({
-            id: c.id,
-            name: c.name,
-            emoji: c.emoji,
-            emoji_type: c.emojiType || 'emoji',
-            display_mode: c.displayMode || 'image-name',
-            description: c.description,
-            sort_order: c.sortOrder || 0
-          })));
+        if (catsRes.error) console.error("Error fetching categories:", catsRes.error);
+        if (itemsRes.error) console.error("Error fetching menu items:", itemsRes.error);
+        if (settingsRes.error) console.error("Error fetching settings:", settingsRes.error);
+
+        // Only set state and seed if there is no error for the respective query
+        if (!catsRes.error && catsRes.data) {
+          if (catsRes.data.length > 0) {
+            setCategories(catsRes.data.map(c => ({
+              id: c.id,
+              name: c.name,
+              emoji: c.emoji || '',
+              emojiType: c.emoji_type as any,
+              displayMode: c.display_mode as any,
+              description: c.description || '',
+              sortOrder: c.sort_order
+            })));
+          } else {
+            // Seed defaults since table is empty
+            const { error } = await supabase.from('categories').insert(DEFAULT_CATEGORIES.map(c => ({
+              id: c.id,
+              name: c.name,
+              emoji: c.emoji,
+              emoji_type: c.emojiType || 'emoji',
+              display_mode: c.displayMode || 'image-name',
+              description: c.description,
+              sort_order: c.sortOrder || 0
+            })));
+            if (error) console.error("Error seeding categories:", error);
+          }
         }
 
-        let resolvedItems: MenuItem[] = [];
-        if (items && items.length > 0) {
-          resolvedItems = items.map(item => ({
-            id: item.id,
-            name: item.name,
-            nameEn: item.name_en,
-            category: item.category,
-            price: Number(item.price),
-            description: item.description || '',
-            dietary: item.dietary || [],
-            calories: item.calories || 0,
-            imageEmoji: item.image_emoji || '',
-            images: item.images || [],
-            colorClass: item.color_class || '',
-            optionGroups: item.option_groups || [],
-            featured: item.featured || false,
-            discount: item.discount ? Number(item.discount) : undefined,
-            badge: item.badge,
-            prepTime: item.prep_time,
-            qualityLabel: item.quality_label,
-            showCalories: item.show_calories !== false,
-            showPrepTime: item.show_prep_time !== false,
-            showQuality: item.show_quality !== false,
-            unit: item.unit,
-            packaging: item.packaging,
-            outOfStock: item.out_of_stock || false,
-            sku: item.sku,
-            orderCount: item.order_count || 0,
-            hidden: item.hidden || false
-          }));
-        } else {
-          resolvedItems = DEFAULT_MENU_ITEMS;
-          await supabase.from('menu_items').insert(DEFAULT_MENU_ITEMS.map(item => ({
-            id: item.id,
-            name: item.name,
-            name_en: item.nameEn || null,
-            category: item.category,
-            price: item.price,
-            description: item.description,
-            dietary: item.dietary,
-            calories: item.calories,
-            image_emoji: item.imageEmoji,
-            images: item.images,
-            color_class: item.colorClass,
-            option_groups: item.optionGroups,
-            featured: item.featured,
-            discount: item.discount || null,
-            badge: item.badge || null,
-            prep_time: item.prepTime || null,
-            quality_label: item.qualityLabel || null,
-            show_calories: item.showCalories !== false,
-            show_prep_time: item.showPrepTime !== false,
-            show_quality: item.showQuality !== false,
-            unit: item.unit || null,
-            packaging: item.packaging || null,
-            out_of_stock: item.outOfStock || false,
-            sku: item.sku || null,
-            order_count: item.orderCount || 0,
-            hidden: item.hidden || false
-          })));
+        if (!itemsRes.error && itemsRes.data) {
+          if (itemsRes.data.length > 0) {
+            setMenuItems(itemsRes.data.map(item => ({
+              id: item.id,
+              name: item.name,
+              nameEn: item.name_en,
+              category: item.category,
+              price: Number(item.price),
+              description: item.description || '',
+              dietary: item.dietary || [],
+              calories: item.calories || 0,
+              imageEmoji: item.image_emoji || '',
+              images: item.images || [],
+              colorClass: item.color_class || '',
+              optionGroups: item.option_groups || [],
+              featured: item.featured || false,
+              discount: item.discount ? Number(item.discount) : undefined,
+              badge: item.badge,
+              prepTime: item.prep_time,
+              qualityLabel: item.quality_label,
+              showCalories: item.show_calories !== false,
+              showPrepTime: item.show_prep_time !== false,
+              showQuality: item.show_quality !== false,
+              unit: item.unit,
+              packaging: item.packaging,
+              outOfStock: item.out_of_stock || false,
+              sku: item.sku,
+              orderCount: item.order_count || 0,
+              hidden: item.hidden || false
+            })));
+          } else {
+            // Seed defaults since table is empty
+            const { error } = await supabase.from('menu_items').insert(DEFAULT_MENU_ITEMS.map(item => ({
+              id: item.id,
+              name: item.name,
+              name_en: item.nameEn || null,
+              category: item.category,
+              price: item.price,
+              description: item.description,
+              dietary: item.dietary,
+              calories: item.calories,
+              image_emoji: item.imageEmoji,
+              images: item.images,
+              color_class: item.colorClass,
+              option_groups: item.optionGroups,
+              featured: item.featured,
+              discount: item.discount || null,
+              badge: item.badge || null,
+              prep_time: item.prepTime || null,
+              quality_label: item.qualityLabel || null,
+              show_calories: item.showCalories !== false,
+              show_prep_time: item.showPrepTime !== false,
+              show_quality: item.showQuality !== false,
+              unit: item.unit || null,
+              packaging: item.packaging || null,
+              out_of_stock: item.outOfStock || false,
+              sku: item.sku || null,
+              order_count: item.orderCount || 0,
+              hidden: item.hidden || false
+            })));
+            if (error) console.error("Error seeding menu items:", error);
+          }
         }
 
-        let resolvedSettings: StoreSettings;
-        if (storeSettings) {
-          resolvedSettings = {
-            logoUrl: storeSettings.logo_url || '',
-            whatsappNumber: storeSettings.whatsapp_number || '966531254475',
-            discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
-            discountEnabled: storeSettings.discount_enabled !== false,
-            dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
-            featured: storeSettings.featured || DEFAULT_FEATURED,
-            texts: storeSettings.texts || DEFAULT_TEXTS,
-            salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
-            heroBgUrl: storeSettings.hero_bg_url || '',
-            heroBgEnabled: storeSettings.hero_bg_enabled !== false,
-            contentBgUrl: storeSettings.content_bg_url || '',
-            contentBgEnabled: storeSettings.content_bg_enabled !== false,
-            footerBgUrl: storeSettings.footer_bg_url || '',
-            footerBgEnabled: storeSettings.footer_bg_enabled !== false,
-            footerLogoUrl: storeSettings.footer_logo_url || '',
-            headerBrandImgUrl: storeSettings.header_brand_img_url || '',
-            brandText: storeSettings.brand_text || '',
-            brandTextColor: storeSettings.brand_text_color || '#14b8a6',
-            brandImgSize: storeSettings.brand_img_size || 48,
-            brandFont: storeSettings.brand_font || '',
-            flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
-            recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
-          };
-        } else {
-          resolvedSettings = {
-            logoUrl: '', whatsappNumber: '966531254475',
-            discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
-            dietaryFilters: DEFAULT_DIETARY_FILTERS,
-            featured: DEFAULT_FEATURED,
-            texts: DEFAULT_TEXTS,
-            salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
-            heroBgUrl: '',
-            heroBgEnabled: true,
-            contentBgUrl: '',
-            contentBgEnabled: true,
-            footerBgUrl: '',
-            footerBgEnabled: true,
-            footerLogoUrl: '',
-            headerBrandImgUrl: '',
-            brandText: '',
-            brandTextColor: '#14b8a6',
-            brandImgSize: 48,
-            brandFont: '',
-            flashDeals: { enabled: false, items: [] },
-            recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
-          };
-          await supabase.from('settings').insert({
-            id: 'store',
-            logo_url: resolvedSettings.logoUrl,
-            whatsapp_number: resolvedSettings.whatsappNumber,
-            discount_tiers: resolvedSettings.discountTiers,
-            discount_enabled: resolvedSettings.discountEnabled,
-            dietary_filters: resolvedSettings.dietaryFilters,
-            featured: resolvedSettings.featured,
-            texts: resolvedSettings.texts,
-            sales_rep: resolvedSettings.salesRep,
-            hero_bg_url: resolvedSettings.heroBgUrl,
-            hero_bg_enabled: resolvedSettings.heroBgEnabled,
-            content_bg_url: resolvedSettings.contentBgUrl,
-            content_bg_enabled: resolvedSettings.contentBgEnabled,
-            footer_bg_url: resolvedSettings.footerBgUrl,
-            footer_bg_enabled: resolvedSettings.footerBgEnabled,
-            footer_logo_url: resolvedSettings.footerLogoUrl,
-            header_brand_img_url: resolvedSettings.headerBrandImgUrl,
-            brand_text: resolvedSettings.brandText,
-            brand_text_color: resolvedSettings.brandTextColor,
-            brand_img_size: resolvedSettings.brandImgSize,
-            brand_font: resolvedSettings.brandFont,
-            flash_deals: resolvedSettings.flashDeals,
-            recommendations: resolvedSettings.recommendations
-          });
+        if (!settingsRes.error) {
+          if (settingsRes.data) {
+            const storeSettings = settingsRes.data;
+            setSettings({
+              logoUrl: storeSettings.logo_url || '',
+              whatsappNumber: storeSettings.whatsapp_number || '966531254475',
+              discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
+              discountEnabled: storeSettings.discount_enabled !== false,
+              dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
+              featured: storeSettings.featured || DEFAULT_FEATURED,
+              texts: storeSettings.texts || DEFAULT_TEXTS,
+              salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+              heroBgUrl: storeSettings.hero_bg_url || '',
+              heroBgEnabled: storeSettings.hero_bg_enabled !== false,
+              contentBgUrl: storeSettings.content_bg_url || '',
+              contentBgEnabled: storeSettings.content_bg_enabled !== false,
+              footerBgUrl: storeSettings.footer_bg_url || '',
+              footerBgEnabled: storeSettings.footer_bg_enabled !== false,
+              footerLogoUrl: storeSettings.footer_logo_url || '',
+              headerBrandImgUrl: storeSettings.header_brand_img_url || '',
+              brandText: storeSettings.brand_text || '',
+              brandTextColor: storeSettings.brand_text_color || '#14b8a6',
+              brandImgSize: storeSettings.brand_img_size || 48,
+              brandFont: storeSettings.brand_font || '',
+              flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
+              recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
+            });
+          } else {
+            // Seed defaults since table has no config
+            const resolvedSettings = {
+              logoUrl: '', whatsappNumber: '966531254475',
+              discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
+              dietaryFilters: DEFAULT_DIETARY_FILTERS,
+              featured: DEFAULT_FEATURED,
+              texts: DEFAULT_TEXTS,
+              salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+              heroBgUrl: '',
+              heroBgEnabled: true,
+              contentBgUrl: '',
+              contentBgEnabled: true,
+              footerBgUrl: '',
+              footerBgEnabled: true,
+              footerLogoUrl: '',
+              headerBrandImgUrl: '',
+              brandText: '',
+              brandTextColor: '#14b8a6',
+              brandImgSize: 48,
+              brandFont: '',
+              flashDeals: { enabled: false, items: [] },
+              recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
+            };
+            const { error } = await supabase.from('settings').insert({
+              id: 'store',
+              logo_url: resolvedSettings.logoUrl,
+              whatsapp_number: resolvedSettings.whatsappNumber,
+              discount_tiers: resolvedSettings.discountTiers,
+              discount_enabled: resolvedSettings.discountEnabled,
+              dietary_filters: resolvedSettings.dietaryFilters,
+              featured: resolvedSettings.featured,
+              texts: resolvedSettings.texts,
+              sales_rep: resolvedSettings.salesRep,
+              hero_bg_url: resolvedSettings.heroBgUrl,
+              hero_bg_enabled: resolvedSettings.heroBgEnabled,
+              content_bg_url: resolvedSettings.contentBgUrl,
+              content_bg_enabled: resolvedSettings.contentBgEnabled,
+              footer_bg_url: resolvedSettings.footerBgUrl,
+              footer_bg_enabled: resolvedSettings.footerBgEnabled,
+              footer_logo_url: resolvedSettings.footerLogoUrl,
+              header_brand_img_url: resolvedSettings.headerBrandImgUrl,
+              brand_text: resolvedSettings.brandText,
+              brand_text_color: resolvedSettings.brandTextColor,
+              brand_img_size: resolvedSettings.brandImgSize,
+              brand_font: resolvedSettings.brandFont,
+              flash_deals: resolvedSettings.flashDeals,
+              recommendations: resolvedSettings.recommendations
+            });
+            if (error) console.error("Error seeding settings:", error);
+          }
         }
-
-        setCategories(resolvedCats);
-        setMenuItems(resolvedItems);
-        setSettings(resolvedSettings);
       } catch (err) {
         console.error('Failed to init/fetch database from Supabase:', err);
       }
@@ -430,7 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addCategory = async (cat: Category) => {
     setCategories(prev => [...prev, cat]);
-    await supabase.from('categories').insert({
+    const { error } = await supabase.from('categories').insert({
       id: cat.id,
       name: cat.name,
       emoji: cat.emoji,
@@ -439,29 +450,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       description: cat.description,
       sort_order: cat.sortOrder || 0
     });
+    if (error) console.error("Error adding category to Supabase:", error);
   };
 
   const updateCategory = async (id: string, patch: Partial<Category>) => {
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
-    await supabase.from('categories').update({
-      name: patch.name,
-      emoji: patch.emoji,
-      emoji_type: patch.emojiType,
-      display_mode: patch.displayMode,
-      description: patch.description,
-      sort_order: patch.sortOrder
-    }).eq('id', id);
+    const updateData: any = {};
+    if (patch.name !== undefined) updateData.name = patch.name;
+    if (patch.emoji !== undefined) updateData.emoji = patch.emoji;
+    if (patch.emojiType !== undefined) updateData.emoji_type = patch.emojiType;
+    if (patch.displayMode !== undefined) updateData.display_mode = patch.displayMode;
+    if (patch.description !== undefined) updateData.description = patch.description;
+    if (patch.sortOrder !== undefined) updateData.sort_order = patch.sortOrder;
+
+    const { error } = await supabase.from('categories').update(updateData).eq('id', id);
+    if (error) console.error("Error updating category in Supabase:", error);
   };
 
   const deleteCategory = async (id: string) => {
     setCategories(prev => prev.filter(c => c.id !== id));
     setMenuItems(prev => prev.filter(m => m.category !== id));
-    await supabase.from('categories').delete().eq('id', id);
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) console.error("Error deleting category from Supabase:", error);
   };
 
   const addMenuItem = async (item: MenuItem) => {
     setMenuItems(prev => [...prev, item]);
-    await supabase.from('menu_items').insert({
+    const { error } = await supabase.from('menu_items').insert({
       id: item.id,
       name: item.name,
       name_en: item.nameEn,
@@ -489,6 +504,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       order_count: item.orderCount,
       hidden: item.hidden
     });
+    if (error) console.error("Error adding menu item to Supabase:", error);
   };
 
   const updateMenuItem = async (id: string, patch: Partial<MenuItem>) => {
@@ -520,19 +536,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (patch.orderCount !== undefined) updateData.order_count = patch.orderCount;
     if (patch.hidden !== undefined) updateData.hidden = patch.hidden;
 
-    await supabase.from('menu_items').update(updateData).eq('id', id);
+    const { error } = await supabase.from('menu_items').update(updateData).eq('id', id);
+    if (error) console.error("Error updating menu item in Supabase:", error);
   };
 
   const deleteMenuItem = async (id: string) => {
     setMenuItems(prev => prev.filter(m => m.id !== id));
-    await supabase.from('menu_items').delete().eq('id', id);
+    const { error } = await supabase.from('menu_items').delete().eq('id', id);
+    if (error) console.error("Error deleting menu item from Supabase:", error);
   };
 
   /** Batch replace — for import */
   const replaceCategories = async (cats: Category[]) => {
     setCategories(cats);
     await supabase.from('categories').delete().neq('id', '');
-    await supabase.from('categories').insert(cats.map(c => ({
+    const { error } = await supabase.from('categories').insert(cats.map(c => ({
       id: c.id,
       name: c.name,
       emoji: c.emoji,
@@ -541,12 +559,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       description: c.description,
       sort_order: c.sortOrder || 0
     })));
+    if (error) console.error("Error batch replacing categories in Supabase:", error);
   };
 
   const replaceMenuItems = async (items: MenuItem[]) => {
     setMenuItems(items);
     await supabase.from('menu_items').delete().neq('id', '');
-    await supabase.from('menu_items').insert(items.map(item => ({
+    const { error } = await supabase.from('menu_items').insert(items.map(item => ({
       id: item.id,
       name: item.name,
       name_en: item.nameEn,
@@ -574,6 +593,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       order_count: item.orderCount,
       hidden: item.hidden
     })));
+    if (error) console.error("Error batch replacing menu items in Supabase:", error);
   };
 
   const addToCart = (item: MenuItem, selectedOptions: OptionItem[]) => {
@@ -595,35 +615,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearCart = () => setCart([]);
   
   const updateSettings = async (patch: Partial<StoreSettings>) => {
-    setSettings(prev => {
-      const next = { ...prev, ...patch };
-      supabase.from('settings').upsert({
-        id: 'store',
-        logo_url: next.logoUrl,
-        whatsapp_number: next.whatsappNumber,
-        discount_tiers: next.discountTiers,
-        discount_enabled: next.discountEnabled,
-        dietary_filters: next.dietaryFilters,
-        featured: next.featured,
-        texts: next.texts,
-        sales_rep: next.salesRep,
-        hero_bg_url: next.heroBgUrl,
-        hero_bg_enabled: next.heroBgEnabled,
-        content_bg_url: next.contentBgUrl,
-        content_bg_enabled: next.contentBgEnabled,
-        footer_bg_url: next.footerBgUrl,
-        footer_bg_enabled: next.footerBgEnabled,
-        footer_logo_url: next.footerLogoUrl,
-        header_brand_img_url: next.headerBrandImgUrl,
-        brand_text: next.brandText,
-        brand_text_color: next.brandTextColor,
-        brand_img_size: next.brandImgSize,
-        brand_font: next.brandFont,
-        flash_deals: next.flashDeals,
-        recommendations: next.recommendations
-      }).then();
-      return next;
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    const { error } = await supabase.from('settings').upsert({
+      id: 'store',
+      logo_url: next.logoUrl,
+      whatsapp_number: next.whatsappNumber,
+      discount_tiers: next.discountTiers,
+      discount_enabled: next.discountEnabled,
+      dietary_filters: next.dietaryFilters,
+      featured: next.featured,
+      texts: next.texts,
+      sales_rep: next.salesRep,
+      hero_bg_url: next.heroBgUrl,
+      hero_bg_enabled: next.heroBgEnabled,
+      content_bg_url: next.contentBgUrl,
+      content_bg_enabled: next.contentBgEnabled,
+      footer_bg_url: next.footerBgUrl,
+      footer_bg_enabled: next.footerBgEnabled,
+      footer_logo_url: next.footerLogoUrl,
+      header_brand_img_url: next.headerBrandImgUrl,
+      brand_text: next.brandText,
+      brand_textColor: next.brandTextColor,
+      brand_img_size: next.brandImgSize,
+      brand_font: next.brandFont,
+      flash_deals: next.flashDeals,
+      recommendations: next.recommendations
     });
+    if (error) console.error("Error updating settings in Supabase:", error);
   };
 
 

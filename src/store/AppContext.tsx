@@ -716,7 +716,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /* WhatsApp */
   const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
-    let msg = `*طلب جديد - PerfectChef*\n`;
+    let msg = `*طلب جديد - RAWBILLA*\n`;
     msg += `--------------------------------\n`;
     msg += `الاسم: *${name}*\n`;
     msg += `الهاتف: *${phone}*\n`;
@@ -758,7 +758,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (isFreeDelivery && deliveryMethod === 'delivery') msg += `التوصيل: مجاني\n`;
     msg += `--------------------------------\n`;
     msg += `*الاجمالي: ${(afterDiscount + tax + deliveryFee).toFixed(2)} ر.س*\n\n`;
-    msg += `شكرا لاختياركم PerfectChef`;
+    msg += `شكرا لاختياركم RAWBILLA`;
     window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

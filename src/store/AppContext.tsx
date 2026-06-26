@@ -41,7 +41,7 @@ export interface FeaturedConfig {
 }
 
 const DEFAULT_FEATURED: FeaturedConfig = {
-  title: 'الأطباق المميزة',
+  title: 'الأصناف المميزة',
   subtitle: 'اكتشف أشهى اختياراتنا المختارة بعناية',
   enabled: true,
   itemIds: [],  // empty = use item.featured flag as fallback
@@ -90,23 +90,23 @@ export interface CustomTexts {
 
 const DEFAULT_TEXTS: CustomTexts = {
   menuTitle: 'قائمة الطعام',
-  heroTitle: 'اكتشف أطباقنا المميزة',
+  heroTitle: 'اكتشف أصنافنا المميزة',
   heroSubtitle: 'اختر من تشكيلتنا الفاخرة، خصّص طلبك، وأرسله مباشرة عبر واتساب',
-  searchPlaceholder: 'ابحث عن أطباق أو تصنيفات...',
+  searchPlaceholder: 'ابحث عن أصناف أو تصنيفات...',
   categoriesLabel: 'التصنيفات',
   footerTagline: 'صُنع من شغف لعشّاق الحلويات والشوكولا',
-  productPopularText: 'من أكثر الأطباق طلباً هذا الأسبوع',
-  featuredCountLabel: 'طبق',
+  productPopularText: 'من أكثر الأصناف طلباً هذا الأسبوع',
+  featuredCountLabel: 'صنف',
   cartEmptyText: 'السلة فارغة',
-  cartEmptyHint: 'اكتشف قائمتنا وأضف أطباقك المفضلة',
+  cartEmptyHint: 'اكتشف قائمتنا وأضف أصنافك المفضلة',
   discountHint: 'أضف {qty} قطع للحصول على خصم {pct}%',
-  notePlaceholder: 'مثال: حار جداً، بدون بصل...',
+  notePlaceholder: 'مثال: موقعك، وقت...',
   footerCopyright: 'جميع الحقوق محفوظة',
   footerBadge1: 'طلب آمن',
   footerBadge2: 'توصيل سريع',
   footerBadge3: 'ضمان الجودة',
   footerContactBtn: 'تواصل معنا',
-  footerBrandName: 'PerfectChef',
+  footerBrandName: 'Rawbilla',
   contactTitle: 'اختر طريقة التواصل',
   contactWhatsApp: 'واتساب',
   contactWhatsAppHint: 'إرسال رسالة فورية',

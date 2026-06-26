@@ -89,7 +89,7 @@ export interface CustomTexts {
 }
 
 const DEFAULT_TEXTS: CustomTexts = {
-  menuTitle: 'قائمة الطعام',
+  menuTitle: 'قائمة الأصناف',
   heroTitle: 'اكتشف أصنافنا المميزة',
   heroSubtitle: 'اختر من تشكيلتنا الفاخرة، خصّص طلبك، وأرسله مباشرة عبر واتساب',
   searchPlaceholder: 'ابحث عن أصناف أو تصنيفات...',

@@ -1,130 +1,64 @@
-import { useState } from 'react';
+import React from 'react';
 import { useApp } from '../store/AppContext';
 
-function convertDriveUrl(url: string): string {
-  if (!url) return '';
-  const m1 = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (m1) return `https://lh3.googleusercontent.com/d/${m1[1]}`;
-  const m2 = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
-  if (m2) return `https://lh3.googleusercontent.com/d/${m2[1]}`;
-  const m3 = url.match(/drive\.google\.com\/uc\?.*id=([^&]+)/);
-  if (m3) return `https://lh3.googleusercontent.com/d/${m3[1]}`;
-  const m4 = url.match(/drive\.google\.com.*\/d\/([a-zA-Z0-9_-]+)/);
-  if (m4) return `https://lh3.googleusercontent.com/d/${m4[1]}`;
-  return url;
+interface LogoProps {
+  size?: 'sm' | 'md' | 'lg';
 }
 
-/* ═══════════════════════════════════════
-   HEADER LOGO — Animated & Premium
-   ═══════════════════════════════════════ */
-export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const { settings } = useApp();
-  const resolvedLogo = convertDriveUrl(settings.logoUrl);
-  const brandImg = convertDriveUrl(settings.headerBrandImgUrl || '');
-  const [imgError, setImgError] = useState(false);
-  const [brandImgError, setBrandImgError] = useState(false);
-  const hasLogo = resolvedLogo && !imgError;
-  const hasBrandImg = brandImg && !brandImgError;
+export const Logo: React.FC<LogoProps> = ({ size = 'md' }) => {
+  const ctx = useApp();
+  const settings = ctx?.settings;
 
-  const cfg = {
-    sm: { img: 36, title: 16, chef: 16, sub: 7, gap: 8 },
-    md: { img: 48, title: 20, chef: 20, sub: 8.5, gap: 10 },
-    lg: { img: 60, title: 28, chef: 28, sub: 11, gap: 12 },
-  }[size];
+  const sizeConfig = {
+    sm: { img: 'w-7 h-7', title: 'text-sm', container: 'gap-1.5' },
+    md: { img: 'w-10 h-10', title: 'text-xl', container: 'gap-2' },
+    lg: { img: 'w-14 h-14', title: 'text-2xl', container: 'gap-3' }
+  };
+
+  const cfg = sizeConfig[size];
+  const resolvedLogo = settings?.logoUrl || '/images/logo.png';
+  const brandName = settings?.brandText || 'RAWBILLA STORE';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: cfg.gap, direction: 'ltr' }} className="select-none shrink-0 group/logo">
-      {/* Logo Image with pulse glow */}
-      {hasLogo && (
-        <div className="relative">
-          {/* Glow ring */}
-          <div className="absolute -inset-1 rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity duration-500"
-            style={{ background: 'linear-gradient(135deg, #f59e0b40, #ea580c40, #f59e0b40)', filter: 'blur(6px)' }} />
+    <div className={`flex items-center ${cfg.container} select-none`}>
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+        <div className="relative bg-white p-1 rounded-xl border border-amber-100 shadow-sm">
           <img
             src={resolvedLogo}
-<<<<<<< HEAD
-            alt="RAWBILLA"
-=======
-            alt="RAWBILLA STORE"
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
-            className="relative hover:scale-105 transition-transform duration-500"
-            style={{ width: cfg.img, height: cfg.img, objectFit: 'contain', flexShrink: 0, borderRadius: 14 }}
-            crossOrigin="anonymous" referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
+            alt={brandName}
+            className={`${cfg.img} object-contain rounded-lg`}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/logo.png';
+            }}
           />
         </div>
-      )}
-
-      {/* Brand image OR text */}
-      {hasBrandImg ? (
-        <img src={brandImg} alt="" style={{ height: settings.brandImgSize || cfg.img, maxWidth: 200, objectFit: 'contain' }}
-          crossOrigin="anonymous" referrerPolicy="no-referrer" onError={() => setBrandImgError(true)} />
-      ) : settings.brandText ? (
-        <span style={{ fontFamily: settings.brandFont ? `'${settings.brandFont}','Tajawal','Inter',sans-serif` : "'Tajawal','Inter',sans-serif", fontWeight: 900, fontSize: cfg.title + 2, color: settings.brandTextColor || '#5c3a1e', letterSpacing: '0.02em' }}>
-          {settings.brandText}
-        </span>
-      ) : (
-<<<<<<< HEAD
-        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span className="logo-text-shimmer" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: cfg.title, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}></span>
-            <span className="logo-chef-glow" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: cfg.chef, marginLeft: 3 }}></span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
-            <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
-            <span className="logo-sub-fade" style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: cfg.sub, color: '#92400e', whiteSpace: 'nowrap' as const }}>
-              
-            </span>
-            <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
-          </div>
-        </div>
-=======
-        <span style={{ fontFamily: "'Tajawal','Inter',sans-serif", fontWeight: 900, fontSize: cfg.title, color: '#5c3a1e' }}>
-          RAWBILLA STORE
-        </span>
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
-      )}
+      </div>
+      <span 
+        style={{ fontFamily: "'Tajawal', 'Inter', sans-serif", fontWeight: 900, color: '#4a2c11' }} 
+        className={`${cfg.title} tracking-tight bg-gradient-to-r from-[#4a2c11] to-[#6d4420] bg-clip-text text-transparent`}
+      >
+        {brandName}
+      </span>
     </div>
   );
-}
+};
 
-/* ═══════════════════════════════════════
-   FOOTER LOGO
-   ═══════════════════════════════════════ */
-export function FooterLogo() {
-  const { settings } = useApp();
-  const resolvedLogo = convertDriveUrl(settings.logoUrl);
-  const [imgError, setImgError] = useState(false);
-  const hasLogo = resolvedLogo && !imgError;
+// دالة تحويل روابط جوجل درايف المضافة تلقائياً لتوافق استيراد الصور
+export const convertDriveUrl = (url: string): string => {
+  if (!url) return '';
+  if (url.includes('drive.google.com/file/d/')) {
+    const id = url.split('/file/d/')[1]?.split('/')[0];
+    return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+  if (url.includes('id=')) {
+    const id = url.split('id=')[1]?.split('&')[0];
+    return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+  return url;
+};
 
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, direction: 'ltr' }} className="select-none">
-      {hasLogo && (
-        <img src={resolvedLogo} alt=""
-          style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0, borderRadius: 14 }}
-          crossOrigin="anonymous" referrerPolicy="no-referrer" onError={() => setImgError(true)} />
-      )}
-      {settings.brandText ? (
-        <span style={{ fontFamily: settings.brandFont ? `'${settings.brandFont}','Tajawal',sans-serif` : "'Tajawal',sans-serif", fontWeight: 900, fontSize: 18, color: settings.brandTextColor || '#5c3a1e' }}>{settings.brandText}</span>
-      ) : (
-<<<<<<< HEAD
-        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
-            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: 17, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#5c3a1e' }}>RAWBILLA</span>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: 17, marginLeft: 3, color: '#d97706' }}>Chef</span>
-          </div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 9, color: '#92400e', marginTop: 2 }}>
-            
-          </span>
-        </div>
-=======
-        <span style={{ fontFamily: "'Tajawal',sans-serif", fontWeight: 900, fontSize: 18, color: '#5c3a1e' }}>
-          RAWBILLA STORE
-        </span>
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
-      )}
-    </div>
-  );
-}
-
-export { convertDriveUrl };
+// مكون شعار الفوتر المضاف تلقائياً
+export const FooterLogo: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
+  return <Logo size={size} />;
+};

@@ -182,11 +182,8 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               {/* Footer Logo/Image */}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
                 <h4 className="text-xs font-black text-amber-800 flex items-center gap-1.5">🖼️ صورة/لوجو أسفل الصفحة (الفوتر)</h4>
-<<<<<<< HEAD
                 <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA في الفوتر — اتركه فارغاً لاستخدام النص</p>
-=======
                 <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA STORE في الفوتر — اتركه فارغاً لاستخدام النص</p>
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
                 <input value={footerLogoInput} onChange={e => setFooterLogoInput(e.target.value)} placeholder="رابط صورة الفوتر (اختياري)" className="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                 <div className="flex gap-2">
                   <button onClick={() => ctx.updateSettings({ footerLogoUrl: footerLogoInput })} className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs cursor-pointer transition flex items-center gap-1.5"><Save className="w-3 h-3" /> حفظ</button>
@@ -298,11 +295,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'footerBadge2' as const, label: 'شارة الفوتر 2', ph: 'توصيل سريع' },
                   { key: 'footerBadge3' as const, label: 'شارة الفوتر 3', ph: 'ضمان الجودة' },
                   { key: 'footerContactBtn' as const, label: 'نص زر التواصل', ph: 'تواصل معنا' },
-<<<<<<< HEAD
-                  { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'RAWBILLA' },
-=======
                   { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'RAWBILLA STORE' },
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
                   { key: 'contactTitle' as const, label: 'عنوان قائمة التواصل', ph: 'اختر طريقة التواصل' },
                   { key: 'contactWhatsApp' as const, label: 'نص واتساب', ph: 'واتساب' },
                   { key: 'contactWhatsAppHint' as const, label: 'وصف واتساب', ph: 'إرسال رسالة فورية' },

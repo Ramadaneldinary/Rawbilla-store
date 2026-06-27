@@ -116,9 +116,7 @@ const DEFAULT_TEXTS: CustomTexts = {
   footerBadge2: 'توصيل سريع',
   footerBadge3: 'ضمان الجودة',
   footerContactBtn: 'تواصل معنا',
-  footerBrandName: 'Rawbilla',
   footerBrandName: 'RAWBILLA STORE',
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
   contactTitle: 'اختر طريقة التواصل',
   contactWhatsApp: 'واتساب',
   contactWhatsAppHint: 'إرسال رسالة فورية',
@@ -787,10 +785,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /* WhatsApp */
   const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
-    let msg = `*طلب جديد - RAWBILLA*\n`;
     const storeName = settings.brandText || 'RAWBILLA STORE';
     let msg = `*طلب جديد - ${storeName}*\n`;
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
     msg += `--------------------------------\n`;
     msg += `الاسم: *${name}*\n`;
     msg += `الهاتف: *${phone}*\n`;
@@ -850,7 +846,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     msg += `*الاجمالي: ${(afterDiscount + tax + deliveryFee).toFixed(2)} ر.س*\n\n`;
     msg += `شكرا لاختياركم RAWBILLA`;
     msg += `شكرا لاختياركم ${storeName}`;
->>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
     window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

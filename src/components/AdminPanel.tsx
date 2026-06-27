@@ -29,6 +29,13 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [contentBgInput, setContentBgInput] = useState(ctx.settings.contentBgUrl || '');
   const [footerBgInput, setFooterBgInput] = useState(ctx.settings.footerBgUrl || '');
   const [footerLogoInput, setFooterLogoInput] = useState(ctx.settings.footerLogoUrl || '');
+  const [headerBrandImgInput, setHeaderBrandImgInput] = useState(ctx.settings.headerBrandImgUrl || '');
+  const [brandTextInput, setBrandTextInput] = useState(ctx.settings.brandText || '');
+  const [brandTextColorInput, setBrandTextColorInput] = useState(ctx.settings.brandTextColor || '#14b8a6');
+  const [primaryColorInput, setPrimaryColorInput] = useState(ctx.settings.primaryColor || '#f59e0b');
+  const [secondaryColorInput, setSecondaryColorInput] = useState(ctx.settings.secondaryColor || '#10b981');
+  const [brandImgSizeInput, setBrandImgSizeInput] = useState(ctx.settings.brandImgSize || 48);
+  const [brandFontInput, setBrandFontInput] = useState(ctx.settings.brandFont || '');
   const texts = ctx.settings.texts || DEFAULT_TEXTS;
   const [editTexts, setEditTexts] = useState({ ...texts });
 
@@ -71,6 +78,30 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
     const [moved] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, moved);
     ctx.replaceMenuItems(arr);
+    setDragId(null);
+  };
+
+  const handleDropCat = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const arr = [...ctx.categories];
+    const fromIdx = arr.findIndex(c => c.id === dragId);
+    const toIdx = arr.findIndex(c => c.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    ctx.replaceCategories(arr);
+    setDragId(null);
+  };
+
+  const handleDropFeatured = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const arr = [...currentIds];
+    const fromIdx = arr.findIndex(id => id === dragId);
+    const toIdx = arr.findIndex(id => id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    ctx.updateSettings({ featured: { ...featuredCfg, itemIds: arr } });
     setDragId(null);
   };
 
@@ -125,7 +156,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           {([
             { key: 'products' as TabKey, label: 'المنتجات', icon: <Package className="w-3.5 h-3.5" /> },
             { key: 'categories' as TabKey, label: 'التصنيفات', icon: <Tag className="w-3.5 h-3.5" /> },
-            { key: 'featured' as TabKey, label: 'القسم المميز', icon: <Star className="w-3.5 h-3.5" /> },
             { key: 'dietary' as TabKey, label: 'الفلاتر', icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
             { key: 'discounts' as TabKey, label: 'الخصومات', icon: <Gift className="w-3.5 h-3.5" /> },
             { key: 'marketing' as TabKey, label: 'التسويق', icon: <Zap className="w-3.5 h-3.5" /> },
@@ -152,7 +182,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               {/* Footer Logo/Image */}
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
                 <h4 className="text-xs font-black text-amber-800 flex items-center gap-1.5">🖼️ صورة/لوجو أسفل الصفحة (الفوتر)</h4>
+<<<<<<< HEAD
                 <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA في الفوتر — اتركه فارغاً لاستخدام النص</p>
+=======
+                <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA STORE في الفوتر — اتركه فارغاً لاستخدام النص</p>
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
                 <input value={footerLogoInput} onChange={e => setFooterLogoInput(e.target.value)} placeholder="رابط صورة الفوتر (اختياري)" className="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                 <div className="flex gap-2">
                   <button onClick={() => ctx.updateSettings({ footerLogoUrl: footerLogoInput })} className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs cursor-pointer transition flex items-center gap-1.5"><Save className="w-3 h-3" /> حفظ</button>
@@ -163,16 +197,16 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
               {/* Header Brand — Image or Text */}
               <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-3">
-                <h4 className="text-xs font-black text-green-800 flex items-center gap-1.5">✍️ تغيير اسم/شعار العلامة (بدلاً من PerfectChef)</h4>
+                <h4 className="text-xs font-black text-green-800 flex items-center gap-1.5">✍️ تغيير اسم/شعار العلامة (بدلاً من RAWBILLA STORE)</h4>
                 <p className="text-[10px] text-green-600 font-medium">اختر: صورة شعار مخصصة — أو اكتب نص بديل بلون مخصص</p>
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-slate-600 block">صورة الشعار (أعلى وأسفل الصفحة):</label>
-                  <input value={ctx.settings.headerBrandImgUrl || ''} onChange={e => ctx.updateSettings({ headerBrandImgUrl: e.target.value })} placeholder="رابط صورة الشعار" className="w-full p-2.5 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                  {ctx.settings.headerBrandImgUrl && (
+                  <input value={headerBrandImgInput} onChange={e => setHeaderBrandImgInput(e.target.value)} placeholder="رابط صورة الشعار" className="w-full p-2.5 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
+                  {headerBrandImgInput && (
                     <div className="flex items-center gap-3">
-                      <div className="bg-white border border-green-100 rounded-xl p-2"><img src={convertUrl(ctx.settings.headerBrandImgUrl)} alt="" className="h-10 object-contain" crossOrigin="anonymous" referrerPolicy="no-referrer" /></div>
-                      <button onClick={() => ctx.updateSettings({ headerBrandImgUrl: '' })} className="text-xs text-red-500 font-bold cursor-pointer hover:underline">حذف</button>
+                      <div className="bg-white border border-green-100 rounded-xl p-2"><img src={convertUrl(headerBrandImgInput)} alt="" className="h-10 object-contain" crossOrigin="anonymous" referrerPolicy="no-referrer" /></div>
+                      <button onClick={() => setHeaderBrandImgInput('')} className="text-xs text-red-500 font-bold cursor-pointer hover:underline">حذف</button>
                     </div>
                   )}
                 </div>
@@ -180,13 +214,13 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-green-200">
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">حجم الصورة (بكسل):</label>
-                    <input type="number" min={24} max={120} value={ctx.settings.brandImgSize || 48} onChange={e => ctx.updateSettings({ brandImgSize: parseInt(e.target.value) || 48 })}
+                    <input type="number" min={24} max={120} value={brandImgSizeInput} onChange={e => setBrandImgSizeInput(parseInt(e.target.value) || 48)}
                       className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                   </div>
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">أو اكتب نص بديل:</label>
-                    <input value={ctx.settings.brandText || ''} onChange={e => ctx.updateSettings({ brandText: e.target.value })} placeholder="مثال: حلويات النخبة"
-                      className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-bold" />
+                    <input value={brandTextInput} onChange={e => setBrandTextInput(e.target.value)} placeholder="مثال: حلويات النخبة"
+                      className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-bold font-ar" />
                   </div>
                 </div>
 
@@ -194,23 +228,53 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">لون النص:</label>
                     <div className="flex items-center gap-2">
-                      <input type="color" value={ctx.settings.brandTextColor || '#5c3a1e'} onChange={e => ctx.updateSettings({ brandTextColor: e.target.value })} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
-                      <input value={ctx.settings.brandTextColor || '#5c3a1e'} onChange={e => ctx.updateSettings({ brandTextColor: e.target.value })} className="flex-1 p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
+                      <input type="color" value={brandTextColorInput} onChange={e => setBrandTextColorInput(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                      <input value={brandTextColorInput} onChange={e => setBrandTextColorInput(e.target.value)} className="flex-1 p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
                     </div>
                   </div>
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">اسم الخط (Google Fonts):</label>
-                    <input value={ctx.settings.brandFont || ''} onChange={e => ctx.updateSettings({ brandFont: e.target.value })} placeholder="مثال: Cairo, Amiri, Lalezar"
+                    <input value={brandFontInput} onChange={e => setBrandFontInput(e.target.value)} placeholder="مثال: Cairo, Amiri, Lalezar"
                       className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                     <p className="text-[9px] text-slate-400 mt-1">اكتب اسم خط Google Fonts مثل: Cairo, Amiri, Lalezar, Changa</p>
                   </div>
                 </div>
-                {ctx.settings.brandText && (
+                {brandTextInput && (
                   <div className="bg-white border border-green-100 rounded-xl p-3 text-center">
                     <p className="text-[9px] text-slate-400 mb-1">معاينة:</p>
-                    <span className="text-xl font-black" style={{ color: ctx.settings.brandTextColor || '#5c3a1e', fontFamily: ctx.settings.brandFont ? `'${ctx.settings.brandFont}',sans-serif` : 'inherit' }}>{ctx.settings.brandText}</span>
+                    <span className="text-xl font-black" style={{ color: brandTextColorInput, fontFamily: brandFontInput ? `'${brandFontInput}',sans-serif` : 'inherit' }}>{brandTextInput}</span>
                   </div>
                 )}
+                <button onClick={() => ctx.updateSettings({ headerBrandImgUrl: headerBrandImgInput, brandText: brandTextInput, brandTextColor: brandTextColorInput, brandImgSize: brandImgSizeInput, brandFont: brandFontInput })}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition flex items-center gap-2">
+                  <Save className="w-3.5 h-3.5" /> حفظ إعدادات الشعار والعلامة
+                </button>
+              </div>
+
+              {/* Theme Colors */}
+              <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 space-y-3">
+                <h4 className="text-xs font-black text-purple-800 flex items-center gap-1.5">🎨 ألوان الواجهة (الثيمات)</h4>
+                <p className="text-[10px] text-purple-600 font-medium">اختر الألوان الأساسية للمتجر (الأزرار، الخلفيات، اللمسات).</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">اللون الأساسي (أزرار، عناوين):</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={primaryColorInput} onChange={e => setPrimaryColorInput(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                      <input value={primaryColorInput} onChange={e => setPrimaryColorInput(e.target.value)} className="flex-1 p-2 border border-purple-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">اللون الثانوي (خلفيات، تفاصيل):</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={secondaryColorInput} onChange={e => setSecondaryColorInput(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+                      <input value={secondaryColorInput} onChange={e => setSecondaryColorInput(e.target.value)} className="flex-1 p-2 border border-purple-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => ctx.updateSettings({ primaryColor: primaryColorInput, secondaryColor: secondaryColorInput })}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition flex items-center gap-2">
+                  <Save className="w-3.5 h-3.5" /> حفظ الألوان
+                </button>
               </div>
 
               {/* ═══ Editable Texts ═══ */}
@@ -234,7 +298,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'footerBadge2' as const, label: 'شارة الفوتر 2', ph: 'توصيل سريع' },
                   { key: 'footerBadge3' as const, label: 'شارة الفوتر 3', ph: 'ضمان الجودة' },
                   { key: 'footerContactBtn' as const, label: 'نص زر التواصل', ph: 'تواصل معنا' },
+<<<<<<< HEAD
                   { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'RAWBILLA' },
+=======
+                  { key: 'footerBrandName' as const, label: 'اسم العلامة في الفوتر', ph: 'RAWBILLA STORE' },
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
                   { key: 'contactTitle' as const, label: 'عنوان قائمة التواصل', ph: 'اختر طريقة التواصل' },
                   { key: 'contactWhatsApp' as const, label: 'نص واتساب', ph: 'واتساب' },
                   { key: 'contactWhatsAppHint' as const, label: 'وصف واتساب', ph: 'إرسال رسالة فورية' },
@@ -260,6 +328,16 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       className="w-full p-2.5 border border-blue-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                   </div>
                 ))}
+                
+                {/* Custom Color for Primary Text */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">اللون الرئيسي للنصوص (العناوين والجمل)</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={editTexts.primaryTextColor || '#78350f'} onChange={e => setEditTexts(p => ({ ...p, primaryTextColor: e.target.value }))} className="w-10 h-10 rounded-xl cursor-pointer" />
+                    <input value={editTexts.primaryTextColor || '#78350f'} onChange={e => setEditTexts(p => ({ ...p, primaryTextColor: e.target.value }))} placeholder="#78350f"
+                      className="w-full p-2.5 border border-blue-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
+                  </div>
+                </div>
                 <button onClick={saveTexts} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition flex items-center gap-2"><Save className="w-3.5 h-3.5" /> حفظ النصوص</button>
               </div>
 
@@ -569,7 +647,12 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 const isImgCat = (cat.emojiType === 'image' || /^https?:\/\//i.test(cat.emoji || '')) && cat.emoji;
                 const imgSize = cat.displayMode === 'image-only' ? 72 : 48;
                 return (
-                <div key={cat.id} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all">
+                <div key={cat.id} 
+                  draggable
+                  onDragStart={() => setDragId(cat.id)}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={() => handleDropCat(cat.id)}
+                  className={`flex items-center justify-between p-3 border rounded-2xl transition-all cursor-grab active:cursor-grabbing ${dragId === cat.id ? 'border-amber-400 bg-amber-50 opacity-60' : 'bg-white border-slate-100 hover:shadow-md'}`}>
                   <div className="flex items-center gap-3">
                     {isImgCat ? (
                       <div className="shrink-0 rounded-2xl overflow-hidden border-2 border-amber-200/50 shadow-md" style={{ width: imgSize, height: imgSize }}>
@@ -668,7 +751,15 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                           <button type="button" onClick={() => { const gs = (prodForm.optionGroups || []).filter((_,i) => i !== gIdx); setProdForm(p => ({ ...p, optionGroups: gs })); }}
                             className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <div className="flex items-center gap-1.5 col-span-2 md:col-span-1">
+                            <label className="text-[10px] font-bold text-slate-500 shrink-0 cursor-pointer flex items-center gap-1">
+                              <input type="checkbox" checked={group.isVariant || false}
+                                onChange={e => { const gs = [...(prodForm.optionGroups || [])]; gs[gIdx] = { ...gs[gIdx], isVariant: e.target.checked }; setProdForm(p => ({ ...p, optionGroups: gs })); }}
+                                className="w-3.5 h-3.5 rounded text-amber-500 focus:ring-amber-500 border-slate-300" />
+                              هذا الخيار بديل للمنتج الرئيسي (تغيير اسم المنتج)
+                            </label>
+                          </div>
                           <div className="flex items-center gap-1.5">
                             <label className="text-[10px] font-bold text-slate-500 shrink-0">الحد الأدنى:</label>
                             <input type="number" min={0} value={group.minSelection}
@@ -807,7 +898,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           {tab === 'featured' && (
             <div className="space-y-5 animate-slideUp max-w-2xl mx-auto">
               <div className="flex items-center justify-between bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4">
-                <div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-md"><Star className="w-5 h-5 fill-white" /></div><div><h3 className="text-sm font-black text-slate-800">القسم المميز</h3></div></div>
+                <div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-md"><Star className="w-5 h-5 fill-white" /></div><div><h3 className="text-sm font-black text-slate-800">القسم المميز (التسويق)</h3></div></div>
                 <button onClick={() => ctx.updateSettings({ featured: { ...featuredCfg, enabled: !featuredCfg.enabled } })} className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${featuredCfg.enabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}><div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${featuredCfg.enabled ? 'right-1' : 'left-1'}`} /></button>
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3">
@@ -821,7 +912,12 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3">
                 <h4 className="text-xs font-black text-slate-700 border-b border-slate-100 pb-2">اختيار الأصناف ({currentIds.length})</h4>
                 {currentIds.length > 0 && currentIds.map((id, idx) => { const item = ctx.menuItems.find(m => m.id === id); if (!item) return null; return (
-                  <div key={id} className="flex items-center justify-between p-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div key={id} 
+                    draggable
+                    onDragStart={() => setDragId(id)}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={() => handleDropFeatured(id)}
+                    className={`flex items-center justify-between p-2.5 border rounded-xl transition cursor-grab active:cursor-grabbing ${dragId === id ? 'bg-amber-100 border-amber-400 opacity-70' : 'bg-amber-50 border-amber-200 hover:shadow-sm'}`}>
                     <div className="flex items-center gap-2.5"><span className="text-xs font-black text-amber-600 bg-amber-100 w-6 h-6 rounded-lg flex items-center justify-center">{idx+1}</span><span className="text-xs font-bold text-slate-800">{item.name}</span><span className="text-[10px] text-amber-600 font-bold">{item.price} ر.س</span></div>
                     <div className="flex items-center gap-1"><button onClick={() => moveFeatured(id,-1)} disabled={idx===0} className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg cursor-pointer disabled:opacity-30"><ArrowUp className="w-3.5 h-3.5" /></button><button onClick={() => moveFeatured(id,1)} disabled={idx===currentIds.length-1} className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg cursor-pointer disabled:opacity-30"><ArrowDown className="w-3.5 h-3.5" /></button><button onClick={() => toggleFeaturedItem(id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg cursor-pointer"><X className="w-3.5 h-3.5" /></button></div>
                   </div>
@@ -833,6 +929,58 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   </button>
                 ))}</div>
               </div>
+
+              {/* عروض الكراتين في قسم التسويق */}
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-3 mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center"><Tag className="w-4 h-4" /></div>
+                    <h4 className="text-sm font-black text-green-800">عرض الكراتين الخاص (التسويق)</h4>
+                  </div>
+                  <button onClick={() => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonDiscountEnabled: !ctx.settings.featured.cartonDiscountEnabled } })}
+                    className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.featured.cartonDiscountEnabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}>
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${ctx.settings.featured.cartonDiscountEnabled ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+                
+                {ctx.settings.featured.cartonDiscountEnabled && (
+                  <div className="space-y-3 bg-white p-4 rounded-xl border border-green-100 animate-fadeIn">
+                    <p className="text-[10px] text-slate-500 mb-2">هذا العرض سيظهر كبانر تسويقي كبير في الشاشة الرئيسية (مثلاً: اشتر 20 كرتون واحصل على 1 مجاناً).</p>
+                    
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">تحديد المنتج المشمول بالخصم:</label>
+                      <select 
+                        value={ctx.settings.featured.cartonTargetItemId || 'all'}
+                        onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonTargetItemId: e.target.value } })}
+                        className="w-full p-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-green-500 bg-slate-50 font-bold"
+                      >
+                        <option value="all">جميع المنتجات (الكراتين)</option>
+                        {ctx.menuItems.filter(m => !m.isVariant).map(item => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700 block mb-1">الكمية المطلوبة (اشتر):</label>
+                        <input type="number" min="1" 
+                          value={ctx.settings.featured.cartonBuyThreshold || 20} 
+                          onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonBuyThreshold: parseInt(e.target.value) || 20 } })}
+                          className="w-full p-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-green-500 bg-slate-50" />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700 block mb-1">الكمية المجانية (احصل على):</label>
+                        <input type="number" min="1" 
+                          value={ctx.settings.featured.cartonFreeCount || 1} 
+                          onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonFreeCount: parseInt(e.target.value) || 1 } })}
+                          className="w-full p-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-green-500 bg-slate-50" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 
@@ -955,6 +1103,52 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 <div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-md"><Gift className="w-5 h-5" /></div><div><h3 className="text-sm font-black text-slate-800">خصم الكمية</h3></div></div>
                 <button onClick={() => ctx.updateSettings({ discountEnabled: !ctx.settings.discountEnabled })} className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.discountEnabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}><div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${ctx.settings.discountEnabled ? 'right-1' : 'left-1'}`} /></button>
               </div>
+
+              {/* Carton Free offer toggle & threshold */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center text-white shadow-md font-ar">📦</div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800">عرض الكرتون المجاني (اشتر X واحصل على Y مجاناً)</h3>
+                      <p className="text-[10px] text-green-700 font-medium font-ar">يتم تقديم كرتون مجاني مخصص للعملاء عند شراء كميات محددة من صنف واحد</p>
+                    </div>
+                  </div>
+                  <button onClick={() => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonDiscountEnabled: !ctx.settings.featured.cartonDiscountEnabled } })}
+                    className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.featured.cartonDiscountEnabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}>
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${ctx.settings.featured.cartonDiscountEnabled ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+                {ctx.settings.featured.cartonDiscountEnabled && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-green-200/50">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-bold text-slate-700 whitespace-nowrap">اشترِ عدد كرتون (X):</label>
+                      <input type="number" min={1} max={100}
+                        value={ctx.settings.featured.cartonBuyThreshold || 5}
+                        onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonBuyThreshold: parseInt(e.target.value) || 5 } })}
+                        className="w-full p-2.5 border border-green-300 rounded-xl text-center text-sm bg-white focus:outline-none focus:border-amber-500 font-bold font-ar" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-bold text-slate-700 whitespace-nowrap">واحصل مجاناً على (Y):</label>
+                      <input type="number" min={1} max={100}
+                        value={ctx.settings.featured.cartonFreeCount || 1}
+                        onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonFreeCount: parseInt(e.target.value) || 1 } })}
+                        className="w-full p-2.5 border border-green-300 rounded-xl text-center text-sm bg-white focus:outline-none focus:border-amber-500 font-bold font-ar" />
+                    </div>
+                    <div className="col-span-1 sm:col-span-2 mt-2">
+                      <label className="text-xs font-bold text-slate-700 block mb-1">المنتج المشمول بالخصم:</label>
+                      <select value={ctx.settings.featured.cartonTargetItemId || 'all'}
+                        onChange={e => ctx.updateSettings({ featured: { ...ctx.settings.featured, cartonTargetItemId: e.target.value } })}
+                        className="w-full p-2.5 border border-green-300 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-ar cursor-pointer">
+                        <option value="all">جميع منتجات الكراتين</option>
+                        {ctx.menuItems.map(item => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="flex justify-between items-center"><h3 className="text-sm font-bold text-slate-700">المستويات ({sortedTiers.length})</h3><button onClick={() => { resetTierForm(); setTierForm({ visible: true }); setShowTierForm(true); }} className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl cursor-pointer transition"><Plus className="w-3.5 h-3.5" /> إضافة</button></div>
               {showTierForm && (
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3 animate-scaleIn">
@@ -965,21 +1159,27 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   {/* Discount type selector */}
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1.5">نوع الحد الأدنى:</label>
-                    <div className="grid grid-cols-2 gap-2 bg-white p-1 rounded-xl border border-amber-200">
+                    <div className="grid grid-cols-3 gap-2 bg-white p-1 rounded-xl border border-amber-200">
                       <button type="button" onClick={() => setTierForm(p => ({ ...p, discountType: 'items' }))}
-                        className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer ${(tierForm.discountType || 'items') === 'items' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-50'}`}>
+                        className={`py-2 text-[10px] font-bold rounded-lg transition cursor-pointer ${(tierForm.discountType || 'items') === 'items' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-50'}`}>
                         عدد القطع
                       </button>
                       <button type="button" onClick={() => setTierForm(p => ({ ...p, discountType: 'value' }))}
-                        className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer ${tierForm.discountType === 'value' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-50'}`}>
-                        قيمة الفاتورة (ر.س)
+                        className={`py-2 text-[10px] font-bold rounded-lg transition cursor-pointer ${tierForm.discountType === 'value' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-50'}`}>
+                        قيمة الفاتورة
+                      </button>
+                      <button type="button" onClick={() => setTierForm(p => ({ ...p, discountType: 'cartons' }))}
+                        className={`py-2 text-[10px] font-bold rounded-lg transition cursor-pointer ${tierForm.discountType === 'cartons' ? 'bg-amber-100 text-amber-800' : 'text-slate-500 hover:bg-slate-50'}`}>
+                        عدد الكراتين
                       </button>
                     </div>
                   </div>
                   {(tierForm.discountType || 'items') === 'items' ? (
                     <input type="number" min={1} placeholder="الحد الأدنى (عدد القطع)" value={tierForm.minItems||''} onChange={e => setTierForm(p => ({ ...p, minItems: parseInt(e.target.value)||0 }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                  ) : (
+                  ) : tierForm.discountType === 'value' ? (
                     <input type="number" min={1} placeholder="الحد الأدنى (ر.س)" value={tierForm.minValue||''} onChange={e => setTierForm(p => ({ ...p, minValue: parseFloat(e.target.value)||0 }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
+                  ) : (
+                    <input type="number" min={1} placeholder="الحد الأدنى (عدد الكراتين)" value={tierForm.minItems||''} onChange={e => setTierForm(p => ({ ...p, minItems: parseInt(e.target.value)||0 }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
                   )}
                   <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={tierForm.visible!==false} onChange={e => setTierForm(p => ({ ...p, visible: e.target.checked }))} className="w-4 h-4 accent-amber-500" /><span className="text-xs font-bold text-slate-700"><Eye className="w-3.5 h-3.5 inline" /> إظهار للعميل</span></label>
                   <div className="flex gap-2"><button onClick={handleSaveTier} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition"><Save className="w-3.5 h-3.5 inline mr-1" /> حفظ</button><button onClick={resetTierForm} className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl text-sm cursor-pointer transition">إلغاء</button></div>
@@ -987,7 +1187,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               )}
               <div className="grid gap-2">{sortedTiers.map((t,i) => (
                 <div key={t.id} className={`flex items-center justify-between p-3.5 bg-white border rounded-2xl transition ${t.visible ? 'border-slate-100' : 'border-dashed border-slate-300 opacity-70'}`}>
-                  <div className="flex items-center gap-3"><span className="text-xl">{TE[i]||'🏆'}</span><div><h4 className="text-sm font-black text-slate-800">{t.label} <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">{t.discountPercent}%</span>{!t.visible && <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold ml-1"><EyeOff className="w-2.5 h-2.5 inline" /> مخفي</span>}</h4><p className="text-[11px] text-slate-400">{t.discountType === 'value' ? `≥ ${t.minValue || 0} ر.س` : `≥ ${t.minItems} قطعة`}</p></div></div>
+                  <div className="flex items-center gap-3"><span className="text-xl">{TE[i]||'🏆'}</span><div><h4 className="text-sm font-black text-slate-800">{t.label} <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold">{t.discountPercent}%</span>{!t.visible && <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold ml-1"><EyeOff className="w-2.5 h-2.5 inline" /> مخفي</span>}</h4><p className="text-[11px] text-slate-400">{t.discountType === 'value' ? `≥ ${t.minValue || 0} ر.س` : t.discountType === 'cartons' ? `≥ ${t.minItems} كرتون` : `≥ ${t.minItems} قطعة`}</p></div></div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => ctx.updateSettings({ discountTiers: (ctx.settings.discountTiers||[]).map(x => x.id===t.id ? { ...x, visible: !x.visible } : x) })} className={`p-2 rounded-lg transition cursor-pointer ${t.visible ? 'text-blue-500' : 'text-slate-400'}`}>{t.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}</button>
                     <button onClick={() => startEditTier(t)} className="p-2 text-slate-400 hover:text-amber-600 rounded-lg cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>

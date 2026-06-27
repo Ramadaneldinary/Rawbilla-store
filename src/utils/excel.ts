@@ -44,6 +44,7 @@ export function exportToExcel(categories: Category[], menuItems: MenuItem[], set
     cartNoteBtn: 'زر الملاحظة', cartBackBtn: 'زر رجوع', cartOrderInfo: 'عنوان معلومات الطلب',
     discountValueHint: 'نص تحفيز خصم القيمة', discountNextLabel: 'كلمة القادم',
     discountReachedMsg: 'رسالة أعلى خصم', discountSavedMsg: 'كلمة وفّرت',
+    primaryTextColor: 'اللون الرئيسي للنصوص',
   };
   const textRows = Object.entries(texts).map(([k, v]) => ({ 'المفتاح': k, 'الوصف': textDescs[k] || k, 'القيمة': v || '' }));
   const wsT = XLSX.utils.json_to_sheet(textRows);
@@ -63,8 +64,8 @@ export function exportToExcel(categories: Category[], menuItems: MenuItem[], set
     // Branding
     { 'الإعداد': 'logoUrl', 'الوصف': 'رابط اللوجو', 'القيمة': settings.logoUrl || '' },
     { 'الإعداد': 'whatsappNumber', 'الوصف': 'رقم الواتساب', 'القيمة': settings.whatsappNumber || '' },
-    { 'الإعداد': 'headerBrandImgUrl', 'الوصف': 'صورة بديلة عن PerfectChef', 'القيمة': settings.headerBrandImgUrl || '' },
-    { 'الإعداد': 'brandText', 'الوصف': 'نص بديل عن PerfectChef', 'القيمة': settings.brandText || '' },
+    { 'الإعداد': 'headerBrandImgUrl', 'الوصف': 'صورة بديلة عن RAWBILLA STORE', 'القيمة': settings.headerBrandImgUrl || '' },
+    { 'الإعداد': 'brandText', 'الوصف': 'نص بديل عن RAWBILLA STORE', 'القيمة': settings.brandText || '' },
     { 'الإعداد': 'brandTextColor', 'الوصف': 'لون النص', 'القيمة': settings.brandTextColor || '' },
     { 'الإعداد': 'brandFont', 'الوصف': 'اسم الخط', 'القيمة': settings.brandFont || '' },
     { 'الإعداد': 'brandImgSize', 'الوصف': 'حجم صورة الشعار (بكسل)', 'القيمة': String(settings.brandImgSize || 48) },

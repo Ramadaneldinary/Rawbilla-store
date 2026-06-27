@@ -42,7 +42,11 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
             style={{ background: 'linear-gradient(135deg, #f59e0b40, #ea580c40, #f59e0b40)', filter: 'blur(6px)' }} />
           <img
             src={resolvedLogo}
+<<<<<<< HEAD
             alt="RAWBILLA"
+=======
+            alt="RAWBILLA STORE"
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
             className="relative hover:scale-105 transition-transform duration-500"
             style={{ width: cfg.img, height: cfg.img, objectFit: 'contain', flexShrink: 0, borderRadius: 14 }}
             crossOrigin="anonymous" referrerPolicy="no-referrer"
@@ -60,6 +64,7 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
           {settings.brandText}
         </span>
       ) : (
+<<<<<<< HEAD
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
             <span className="logo-text-shimmer" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: cfg.title, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}></span>
@@ -73,6 +78,11 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
             <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
           </div>
         </div>
+=======
+        <span style={{ fontFamily: "'Tajawal','Inter',sans-serif", fontWeight: 900, fontSize: cfg.title, color: '#5c3a1e' }}>
+          RAWBILLA STORE
+        </span>
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
       )}
     </div>
   );
@@ -97,6 +107,7 @@ export function FooterLogo() {
       {settings.brandText ? (
         <span style={{ fontFamily: settings.brandFont ? `'${settings.brandFont}','Tajawal',sans-serif` : "'Tajawal',sans-serif", fontWeight: 900, fontSize: 18, color: settings.brandTextColor || '#5c3a1e' }}>{settings.brandText}</span>
       ) : (
+<<<<<<< HEAD
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
             <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: 17, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#5c3a1e' }}>RAWBILLA</span>
@@ -106,6 +117,11 @@ export function FooterLogo() {
             
           </span>
         </div>
+=======
+        <span style={{ fontFamily: "'Tajawal',sans-serif", fontWeight: 900, fontSize: 18, color: '#5c3a1e' }}>
+          RAWBILLA STORE
+        </span>
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
       )}
     </div>
   );

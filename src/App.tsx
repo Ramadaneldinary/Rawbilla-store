@@ -73,7 +73,7 @@ function FeaturedCarousel({ items, categories: cats, title, subtitle, countLabel
         {item.badge && <span className="absolute top-3 left-3 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-extrabold rounded-full shadow-lg">{item.badge}</span>}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h4 className="text-base font-black text-white drop-shadow-lg line-clamp-1 font-ar">{item.name}</h4>
+          <h4 className="text-base font-black text-white drop-shadow-lg line-clamp-1 font-ar">{item.name}</h4>
           {item.nameEn && <p className="text-[10px] font-semibold italic line-clamp-1 font-en" style={{ color: '#fbbf24' }}>{item.nameEn}</p>}
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs text-white/70 font-medium">{cats.find(c => c.id === item.category)?.name}</span>
@@ -109,10 +109,27 @@ function FeaturedCarousel({ items, categories: cats, title, subtitle, countLabel
 
 export default function App() {
   const ctx = useApp();
-  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems } = ctx;
+  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems, isLoading } = ctx;
   const activeDietaryFilters = (settings.dietaryFilters || []).filter(d => d.enabled);
   const featuredCfg = settings.featured || { title: '', subtitle: '', enabled: true, itemIds: [], style: 'scroll' as const };
   const T = settings.texts || DEFAULT_TEXTS;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white" dir="rtl">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 rounded-full border-4 border-amber-500/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-amber-500 animate-spin"></div>
+          </div>
+          <div className="text-center space-y-1.5">
+            <h2 className="text-lg font-black text-amber-500 font-ar tracking-wide">جاري تحميل المتجر...</h2>
+            <p className="text-[11px] text-slate-400 font-medium font-ar">يرجى الانتظار قليلاً لتحديث البيانات</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,11 +141,29 @@ export default function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = settings.brandText || T.menuTitle || "Rawbilla Store";
+  }, [settings.brandText, T.menuTitle]);
 
 
   const handleSelectItem = (item: MenuItem) => { if (item.optionGroups && item.optionGroups.length > 0) setCustomizingItem(item); else addToCart(item, []); };
   const handleViewDetail = (item: MenuItem) => setDetailItem(item);
   const toggleDietary = (id: string) => setSelectedDietary(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
+
+  const handleDropOnMainScreen = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const arr = [...menuItems];
+    const fromIdx = arr.findIndex(m => m.id === dragId);
+    const toIdx = arr.findIndex(m => m.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    ctx.replaceMenuItems(arr);
+    setDragId(null);
+  };
+
   const filteredItems = menuItems.filter(item => {
     if (item.hidden) return false; // إخفاء الأصناف المخفية
     if (activeCategory !== 'all' && item.category !== activeCategory) return false;
@@ -156,12 +191,11 @@ export default function App() {
 
     return (
       <button key={cat.id} onClick={() => handleCatClick(cat.id)} title={cat.name || ''}
-        className={`cat-card flex flex-col items-center justify-center rounded-2xl border transition-all duration-300 cursor-pointer ${
-          isAnimating ? (isSelected ? 'cat-btn-selected' : 'cat-btn-press') : ''
-        } ${isSelected
-          ? 'cat-card-active bg-gradient-to-br from-amber-500 to-orange-500 border-amber-500 text-white shadow-xl shadow-amber-200/50'
-          : 'bg-white/90 glass border-slate-200/60 text-slate-700 hover:shadow-xl shadow-sm active:scale-95'
-        }`}
+        className={`cat-card flex flex-col items-center justify-center rounded-2xl border transition-all duration-300 cursor-pointer ${isAnimating ? (isSelected ? 'cat-btn-selected' : 'cat-btn-press') : ''
+          } ${isSelected
+            ? 'cat-card-active bg-gradient-to-br from-amber-500 to-orange-500 border-amber-500 text-white shadow-xl shadow-amber-200/50'
+            : 'bg-white/90 glass border-slate-200/60 text-slate-700 hover:shadow-xl shadow-sm active:scale-95'
+          }`}
         style={isImgOnly && hasImg ? { width: 68, height: 68, padding: 5 } : { padding: '10px 16px' }}>
 
         {/* === صورة فقط === */}
@@ -197,6 +231,55 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50/60 flex flex-col font-sans select-none overflow-x-hidden antialiased">
+      <style>{`
+        :root {
+          --primary-color: ${settings.primaryColor || '#14b8a6'};
+          --secondary-color: ${settings.secondaryColor || '#8b5cf6'};
+          
+          /* Primary overrides (amber/orange) */
+          --color-amber-50: color-mix(in srgb, var(--primary-color) 10%, white);
+          --color-amber-100: color-mix(in srgb, var(--primary-color) 20%, white);
+          --color-amber-200: color-mix(in srgb, var(--primary-color) 40%, white);
+          --color-amber-300: color-mix(in srgb, var(--primary-color) 60%, white);
+          --color-amber-400: color-mix(in srgb, var(--primary-color) 80%, white);
+          --color-amber-500: var(--primary-color);
+          --color-amber-600: color-mix(in srgb, var(--primary-color) 80%, black);
+          --color-amber-700: color-mix(in srgb, var(--primary-color) 60%, black);
+          --color-amber-800: color-mix(in srgb, var(--primary-color) 40%, black);
+          
+          --color-orange-50: color-mix(in srgb, var(--primary-color) 15%, white);
+          --color-orange-100: color-mix(in srgb, var(--primary-color) 25%, white);
+          --color-orange-200: color-mix(in srgb, var(--primary-color) 45%, white);
+          --color-orange-300: color-mix(in srgb, var(--primary-color) 65%, white);
+          --color-orange-400: color-mix(in srgb, var(--primary-color) 85%, white);
+          --color-orange-500: color-mix(in srgb, var(--primary-color) 90%, black);
+          --color-orange-600: color-mix(in srgb, var(--primary-color) 75%, black);
+          --color-orange-700: color-mix(in srgb, var(--primary-color) 55%, black);
+
+          /* Secondary overrides (emerald/green) */
+          --color-emerald-50: color-mix(in srgb, var(--secondary-color) 10%, white);
+          --color-emerald-100: color-mix(in srgb, var(--secondary-color) 20%, white);
+          --color-emerald-200: color-mix(in srgb, var(--secondary-color) 40%, white);
+          --color-emerald-300: color-mix(in srgb, var(--secondary-color) 60%, white);
+          --color-emerald-400: color-mix(in srgb, var(--secondary-color) 80%, white);
+          --color-emerald-500: var(--secondary-color);
+          --color-emerald-600: color-mix(in srgb, var(--secondary-color) 80%, black);
+          --color-emerald-700: color-mix(in srgb, var(--secondary-color) 60%, black);
+          --color-emerald-800: color-mix(in srgb, var(--secondary-color) 40%, black);
+          
+          --color-green-50: color-mix(in srgb, var(--secondary-color) 15%, white);
+          --color-green-100: color-mix(in srgb, var(--secondary-color) 25%, white);
+          --color-green-200: color-mix(in srgb, var(--secondary-color) 45%, white);
+          --color-green-300: color-mix(in srgb, var(--secondary-color) 65%, white);
+          --color-green-400: color-mix(in srgb, var(--secondary-color) 85%, white);
+          --color-green-500: color-mix(in srgb, var(--secondary-color) 90%, black);
+          --color-green-600: color-mix(in srgb, var(--secondary-color) 75%, black);
+          --color-green-700: color-mix(in srgb, var(--secondary-color) 55%, black);
+        }
+        .text-slate-800, .text-slate-900, .text-gray-800, .text-gray-900, .text-black {
+          color: ${T.primaryTextColor || '#111827'} !important;
+        }
+      `}</style>
       {/* الهيدر */}
       <header className="sticky top-0 z-40 bg-white/95 border-b border-slate-100/80 shadow-sm" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-3">
@@ -289,6 +372,36 @@ export default function App() {
         <FeaturedCarousel items={featuredItems} categories={categories} title={featuredCfg.title || 'الأصناف المميزة'} subtitle={featuredCfg.subtitle} countLabel={`${featuredItems.length} ${T.featuredCountLabel || 'طبق'}`} onView={handleViewDetail} onAdd={handleSelectItem} />
       )}
 
+      {/* بانر العرض الخاص بالكراتين (التسويق) */}
+      {featuredCfg.cartonDiscountEnabled && featuredCfg.cartonBuyThreshold && featuredCfg.cartonFreeCount && activeCategory === 'all' && !searchQuery && (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 my-4">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl p-5 shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -left-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+            <div className="relative z-10 flex items-center gap-4 text-white">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center shrink-0 border border-white/30 backdrop-blur-sm shadow-inner">
+                <span className="text-2xl font-black drop-shadow-md">📦</span>
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-black drop-shadow-sm mb-1 leading-tight">عرض خاص جداً لفترة محدودة!</h3>
+                <p className="text-xs md:text-sm text-green-50 font-bold">
+                  اشترِ <span className="text-white text-base md:text-lg bg-green-700/50 px-2 py-0.5 rounded border border-green-400/50">{featuredCfg.cartonBuyThreshold}</span> {featuredCfg.cartonTargetItemId && featuredCfg.cartonTargetItemId !== 'all' ? menuItems.find(m => m.id === featuredCfg.cartonTargetItemId)?.name || 'كرتون' : 'كراتين'}
+                  {' '}واحصل على <span className="text-white text-base md:text-lg bg-amber-500 px-2 py-0.5 rounded shadow-sm border border-amber-400">{featuredCfg.cartonFreeCount}</span> مجاناً
+                </p>
+              </div>
+            </div>
+            <button onClick={() => {
+              if (featuredCfg.cartonTargetItemId && featuredCfg.cartonTargetItemId !== 'all') {
+                const item = menuItems.find(m => m.id === featuredCfg.cartonTargetItemId);
+                if (item) handleViewDetail(item);
+              }
+            }} className="relative z-10 whitespace-nowrap bg-white text-green-700 hover:bg-green-50 font-black px-6 py-3 rounded-full text-sm shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer border border-green-100">
+              تسوق الآن
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* عروض محدودة */}
       <FlashDeals />
 
@@ -306,47 +419,58 @@ export default function App() {
         )}
 
         <div className="relative max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 min-w-0 flex flex-col gap-4">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
-              <span className="text-sm font-black text-slate-700 flex items-center gap-2"><Filter className="w-4 h-4 text-amber-500" /> {T.categoriesLabel}</span>
-              {selectedDietary.length > 0 && <button onClick={() => setSelectedDietary([])} className="text-[11px] font-bold text-slate-400 hover:text-slate-600 underline cursor-pointer">مسح الفلاتر</button>}
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                <span className="text-sm font-black text-slate-700 flex items-center gap-2"><Filter className="w-4 h-4 text-amber-500" /> {T.categoriesLabel}</span>
+                {selectedDietary.length > 0 && <button onClick={() => setSelectedDietary([])} className="text-[11px] font-bold text-slate-400 hover:text-slate-600 underline cursor-pointer">مسح الفلاتر</button>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={() => handleCatClick('all')}
+                  className={`cat-card flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-300 cursor-pointer ${catAnim === 'all' ? 'cat-btn-press' : ''} ${activeCategory === 'all'
+                      ? 'cat-card-active bg-gradient-to-br from-amber-500 to-orange-500 border-amber-500 text-white shadow-xl shadow-amber-200/50'
+                      : 'bg-white/90 glass border-slate-200/60 text-slate-700 hover:shadow-xl shadow-sm active:scale-95'
+                    }`}>
+                  <span className="cat-name-label">🍴 الكل</span>
+                </button>
+                {categories.map(renderCatBtn)}
+              </div>
+              {activeDietaryFilters.length > 0 && (
+                <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-50">
+                  <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1"><SlidersHorizontal className="w-3.5 h-3.5" /> فلاتر غذائية</span>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">{activeDietaryFilters.map(diet => {
+                    const checked = selectedDietary.includes(diet.id);
+                    return <button key={diet.id} onClick={() => toggleDietary(diet.id)} className={`text-xs px-2.5 py-1.5 rounded-xl border flex items-center gap-1 font-bold transition cursor-pointer ${checked ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-400 text-amber-800' : 'bg-white border-slate-100 text-slate-600 hover:bg-slate-50'}`}>
+                      {diet.iconType === 'image' && diet.icon ? <img src={cvtUrl(diet.icon)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm" crossOrigin="anonymous" referrerPolicy="no-referrer" /> : <span>{diet.icon}</span>} {diet.label}
+                    </button>;
+                  })}</div>
+                </div>
+              )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button onClick={() => handleCatClick('all')}
-                className={`cat-card flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all duration-300 cursor-pointer ${catAnim === 'all' ? 'cat-btn-press' : ''} ${
-                  activeCategory === 'all'
-                    ? 'cat-card-active bg-gradient-to-br from-amber-500 to-orange-500 border-amber-500 text-white shadow-xl shadow-amber-200/50'
-                    : 'bg-white/90 glass border-slate-200/60 text-slate-700 hover:shadow-xl shadow-sm active:scale-95'
-                }`}>
-                <span className="cat-name-label">🍴 الكل</span>
-              </button>
-              {categories.map(renderCatBtn)}
+            <div className="flex justify-between items-center text-xs text-slate-500 font-bold border-b border-slate-100 pb-2">
+              <span className="flex items-center gap-1.5">📦 عرض <span className="text-amber-600 font-black text-sm animate-countUp">{filteredItems.length}</span> منتج</span>
+              {activeCategory !== 'all' && <span className="text-amber-600 font-extrabold bg-amber-50 border border-amber-100 rounded-lg px-2 py-0.5">{categories.find(c => c.id === activeCategory)?.name}</span>}
             </div>
-            {activeDietaryFilters.length > 0 && (
-              <div className="flex flex-col gap-1.5 pt-1.5 border-t border-slate-50">
-                <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1"><SlidersHorizontal className="w-3.5 h-3.5" /> فلاتر غذائية</span>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1">{activeDietaryFilters.map(diet => {
-                  const checked = selectedDietary.includes(diet.id);
-                  return <button key={diet.id} onClick={() => toggleDietary(diet.id)} className={`text-xs px-2.5 py-1.5 rounded-xl border flex items-center gap-1 font-bold transition cursor-pointer ${checked ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-400 text-amber-800' : 'bg-white border-slate-100 text-slate-600 hover:bg-slate-50'}`}>
-                    {diet.iconType === 'image' && diet.icon ? <img src={cvtUrl(diet.icon)} alt="" className="w-3.5 h-3.5 object-contain rounded-sm" crossOrigin="anonymous" referrerPolicy="no-referrer" /> : <span>{diet.icon}</span>} {diet.label}
-                  </button>;
-                })}</div>
+            {filteredItems.length === 0 ? (
+              <div className="text-center py-12 px-6 bg-white border border-slate-100 rounded-3xl"><span className="text-4xl">🥘</span><h3 className="text-base font-bold text-slate-800 mt-2">لا توجد نتائج</h3><p className="text-xs text-slate-400 mt-1">جرّب تغيير الفلاتر أو كلمات البحث</p></div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 stagger-grid">
+                {filteredItems.map(item => (
+                  <div key={item.id}
+                    draggable={isAdmin}
+                    onDragStart={() => isAdmin && setDragId(item.id)}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={() => isAdmin && handleDropOnMainScreen(item.id)}
+                    className={`transition ${dragId === item.id ? 'opacity-50 scale-95' : ''} ${isAdmin ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                  >
+                    <MenuCard item={item} onSelect={handleSelectItem} onViewDetail={handleViewDetail} />
+                  </div>
+                ))}
               </div>
             )}
           </div>
-          <div className="flex justify-between items-center text-xs text-slate-500 font-bold border-b border-slate-100 pb-2">
-            <span className="flex items-center gap-1.5">📦 عرض <span className="text-amber-600 font-black text-sm animate-countUp">{filteredItems.length}</span> منتج</span>
-            {activeCategory !== 'all' && <span className="text-amber-600 font-extrabold bg-amber-50 border border-amber-100 rounded-lg px-2 py-0.5">{categories.find(c => c.id === activeCategory)?.name}</span>}
-          </div>
-          {filteredItems.length === 0 ? (
-            <div className="text-center py-12 px-6 bg-white border border-slate-100 rounded-3xl"><span className="text-4xl">🥘</span><h3 className="text-base font-bold text-slate-800 mt-2">لا توجد نتائج</h3><p className="text-xs text-slate-400 mt-1">جرّب تغيير الفلاتر أو كلمات البحث</p></div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 stagger-grid">{filteredItems.map(item => <MenuCard key={item.id} item={item} onSelect={handleSelectItem} onViewDetail={handleViewDetail} />)}</div>
-          )}
+          {/* السلة تظهر كـ drawer عند الضغط على الزر العائم */}
         </div>
-        {/* السلة تظهر كـ drawer عند الضغط على الزر العائم */}
-      </div>
       </div>
 
       {/* سلة الطلب — drawer */}
@@ -389,7 +513,7 @@ export default function App() {
 
 
       {/* الفوتر */}
-      <footer className={`relative border-t border-amber-200/30 overflow-hidden ${settings.footerBgEnabled === false ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100' : ''}`}>
+      <footer className={`relative border-t border-amber-200/30 ${settings.footerBgEnabled === false ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100' : ''}`}>
         {settings.footerBgEnabled !== false && (
           <div className="absolute inset-0 pointer-events-none">
             {settings.footerBgUrl ? (
@@ -413,7 +537,7 @@ export default function App() {
           )}
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-4 text-xs font-bold" style={{ color: '#92400e' }}>
-              <span>© {new Date().getFullYear()} {T.footerBrandName || 'RAWBILLA'}</span><span>•</span><span>{T.footerCopyright || 'جميع الحقوق محفوظة'}</span>
+              <span>© {new Date().getFullYear()} {T.footerBrandName || 'PerfectChef'}</span><span>•</span><span>{T.footerCopyright || 'جميع الحقوق محفوظة'}</span>
             </div>
             <p className="text-[10px] font-medium" style={{ color: '#b45309' }}>{T.footerTagline}</p>
             <div className="flex flex-wrap items-center justify-center gap-2 mt-1">

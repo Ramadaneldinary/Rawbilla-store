@@ -24,8 +24,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
   const subtotal = cart.reduce((t, ci) => {
     return t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity;
   }, 0);
-  const { discountPercent, discountAmount } = discountResult;
-  const afterDiscount = subtotal - discountAmount;
+  const { discountPercent, discountAmount, cartonDiscountAmount, freeCartonsDetail } = discountResult;
+  const afterDiscount = subtotal - cartonDiscountAmount - discountAmount;
   const isFreeDelivery = afterDiscount >= FREE_DELIVERY_MIN;
   const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : DELIVERY_FEE) : 0;
   const remainingForFree = Math.max(0, FREE_DELIVERY_MIN - afterDiscount);
@@ -128,6 +128,17 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
           {deliveryMethod === 'delivery' && <input value={address} onChange={e => setAddress(e.target.value)} placeholder="عنوان التوصيل *" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />}
           <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1.5 text-xs font-medium text-slate-500">
             <div className="flex justify-between"><span>{T.cartSubtotal || 'المجموع'}</span><span className="font-bold text-slate-700">{subtotal.toFixed(2)} ر.س</span></div>
+            {cartonDiscountAmount > 0 && (
+              <div className="bg-green-50/50 rounded-xl p-2 border border-green-100/50 text-[10px] space-y-0.5">
+                <p className="font-bold text-green-700">🎁 كرتون مجاني:</p>
+                {freeCartonsDetail.map((d, idx) => (
+                  <div key={idx} className="flex justify-between text-green-600">
+                    <span>- {d.itemName} ({d.freeCount} مجاناً)</span>
+                    <span>-{d.refundedValue.toFixed(2)} ر.س</span>
+                  </div>
+                ))}
+              </div>
+            )}
             {discountPercent > 0 && <div className="flex justify-between text-green-600"><span className="font-bold">🎁 خصم {discountPercent}%</span><span className="font-black">-{discountAmount.toFixed(2)} ر.س</span></div>}
             <div className="flex justify-between"><span>{T.cartTax || 'الضريبة (15%)'}</span><span className="font-bold text-slate-700">{tax.toFixed(2)} ر.س</span></div>
             {deliveryMethod === 'delivery' && <div className="flex justify-between"><span>التوصيل</span>{isFreeDelivery ? <span className="font-black text-green-600">مجاني</span> : <span className="font-bold text-slate-700">{DELIVERY_FEE} ر.س</span>}</div>}
@@ -183,13 +194,20 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
         {cart.map(ci => {
           const unitP = calcUnitPrice(ci.menuItem.price, ci.selectedOptions);
           const lineTotal = unitP * ci.quantity;
+          const variantOption = ci.selectedOptions.find(opt => {
+            const group = ci.menuItem.optionGroups?.find(g => g.options.some(o => o.id === opt.id));
+            return group?.isVariant;
+          });
+          const displayName = variantOption ? variantOption.name : ci.menuItem.name;
+          const displayOptions = ci.selectedOptions.filter(opt => opt.id !== variantOption?.id);
+
           return (
             <div key={ci.id} className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1.5 shadow-sm cart-item-enter">
               <div className="flex justify-between items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-slate-800 leading-tight font-ar">{ci.menuItem.name}</h4>
-                  {ci.menuItem.nameEn && <p className="text-[9px] font-en italic mt-0.5" style={{ color: '#e97a1f' }}>{ci.menuItem.nameEn}</p>}
-                  {ci.selectedOptions.length > 0 && <div className="text-[10px] text-amber-700 mt-0.5 flex flex-wrap gap-0.5">{ci.selectedOptions.map(opt => <span key={opt.id} className="bg-amber-50 px-1 py-0.5 rounded border border-amber-200/50">+ {opt.name}</span>)}</div>}
+                  <h4 className="text-xs font-bold text-slate-800 leading-tight font-ar">{displayName}</h4>
+                  {ci.menuItem.nameEn && !variantOption && <p className="text-[9px] font-en italic mt-0.5" style={{ color: '#e97a1f' }}>{ci.menuItem.nameEn}</p>}
+                  {displayOptions.length > 0 && <div className="text-[10px] text-amber-700 mt-0.5 flex flex-wrap gap-0.5">{displayOptions.map(opt => <span key={opt.id} className="bg-amber-50 px-1 py-0.5 rounded border border-amber-200/50">+ {opt.name}</span>)}</div>}
                   {ci.notes && editingNoteId !== ci.id && (
                     <button onClick={() => { setEditingNoteId(ci.id); setCurrentNote(ci.notes); }}
                       className="text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 font-medium mt-1 flex items-center gap-0.5 cursor-pointer hover:bg-indigo-100 transition">
@@ -230,6 +248,17 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 }} className="p-3 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <div className="space-y-1 text-xs font-medium text-slate-500 mb-2">
           <div className="flex justify-between"><span>{T.cartSubtotal || 'المجموع'}</span><span className="font-bold text-slate-700">{subtotal.toFixed(2)} ر.س</span></div>
+          {cartonDiscountAmount > 0 && (
+            <div className="bg-green-50/50 rounded-xl p-2 border border-green-100/50 text-[10px] space-y-0.5">
+              <p className="font-bold text-green-700">🎁 كرتون مجاني:</p>
+              {freeCartonsDetail.map((d, idx) => (
+                <div key={idx} className="flex justify-between text-green-600">
+                  <span>- {d.itemName} ({d.freeCount} مجاناً)</span>
+                  <span>-{d.refundedValue.toFixed(2)} ر.س</span>
+                </div>
+              ))}
+            </div>
+          )}
           {discountPercent > 0 && <div className="flex justify-between text-green-600 bg-green-50 rounded-lg px-2 py-1 border border-green-100"><span className="font-bold">🎁 خصم {discountPercent}%</span><span className="font-black">-{discountAmount.toFixed(2)} ر.س</span></div>}
           <div className="flex justify-between"><span>{T.cartTax || 'الضريبة (15%)'}</span><span className="font-bold text-slate-700">{tax.toFixed(2)} ر.س</span></div>
           <div className="flex justify-between text-sm font-black text-slate-800 pt-1.5 border-t border-slate-100 mt-1">

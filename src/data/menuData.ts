@@ -9,6 +9,7 @@ export interface OptionGroup {
   name: string;
   minSelection: number;
   maxSelection: number;
+  isVariant?: boolean; // If true, selected option from this group replaces the base item name
   options: OptionItem[];
 }
 

@@ -18,7 +18,9 @@ export interface DiscountTier {
   id: string;
   minItems: number;
   minValue?: number;        // minimum order value (SAR) — alternative to minItems
-  discountType?: 'items' | 'value';  // default = 'items'
+  discountType?: 'items' | 'value' | 'cartons';  // default = 'items'
+  targetItemId?: string;    // specific item ID for carton discount
+  targetItemName?: string;  // specific item name for UI display
   discountPercent: number;
   label: string;
   visible: boolean;
@@ -38,6 +40,10 @@ export interface FeaturedConfig {
   enabled: boolean;
   itemIds: string[];       // ordered list of featured item IDs
   style: 'scroll' | 'grid';
+  cartonDiscountEnabled?: boolean;
+  cartonBuyThreshold?: number;
+  cartonFreeCount?: number;
+  cartonTargetItemId?: string;
 }
 
 const DEFAULT_FEATURED: FeaturedConfig = {
@@ -46,6 +52,9 @@ const DEFAULT_FEATURED: FeaturedConfig = {
   enabled: true,
   itemIds: [],  // empty = use item.featured flag as fallback
   style: 'scroll',
+  cartonDiscountEnabled: false,
+  cartonBuyThreshold: 5,
+  cartonFreeCount: 1,
 };
 
 /* ───── Customizable Texts ───── */
@@ -86,6 +95,7 @@ export interface CustomTexts {
   discountNextLabel: string;  // "القادم"
   discountReachedMsg: string; // "مبروك! وصلت لأعلى مستوى"
   discountSavedMsg: string;   // "وفّرت"
+  primaryTextColor: string;
 }
 
 const DEFAULT_TEXTS: CustomTexts = {
@@ -106,7 +116,11 @@ const DEFAULT_TEXTS: CustomTexts = {
   footerBadge2: 'توصيل سريع',
   footerBadge3: 'ضمان الجودة',
   footerContactBtn: 'تواصل معنا',
+<<<<<<< HEAD
   footerBrandName: 'Rawbilla',
+=======
+  footerBrandName: 'RAWBILLA STORE',
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
   contactTitle: 'اختر طريقة التواصل',
   contactWhatsApp: 'واتساب',
   contactWhatsAppHint: 'إرسال رسالة فورية',
@@ -125,6 +139,7 @@ const DEFAULT_TEXTS: CustomTexts = {
   discountNextLabel: 'القادم',
   discountReachedMsg: 'مبروك! وصلت لأعلى مستوى',
   discountSavedMsg: 'وفّرت',
+  primaryTextColor: '#78350f',
 };
 
 /* ───── Sales Rep Card ───── */
@@ -155,6 +170,8 @@ export interface StoreSettings {
   footerLogoUrl: string;
   headerBrandImgUrl: string;
   brandText: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   brandTextColor: string;
   brandImgSize: number;
   brandFont: string;
@@ -176,6 +193,8 @@ export interface DiscountResult {
   discountAmount: number;
   progressToNext: number;
   itemsToNextTier: number;
+  cartonDiscountAmount: number;
+  freeCartonsDetail: { itemName: string; freeCount: number; refundedValue: number }[];
 }
 
 /* ───── Context Type ───── */
@@ -183,6 +202,7 @@ interface AppState {
   isAdmin: boolean;
   login: (code: string) => boolean;
   logout: () => void;
+  isLoading: boolean;
 
   categories: Category[];
   addCategory: (cat: Category) => void;
@@ -220,8 +240,9 @@ const ADMIN_CODE = 'MOD13';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(DEFAULT_MENU_ITEMS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [settings, setSettings] = useState<StoreSettings>({
     logoUrl: '', whatsappNumber: '966531254475',
     discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
@@ -237,7 +258,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     footerBgEnabled: true,
     footerLogoUrl: '',
     headerBrandImgUrl: '',
-    brandText: '',
+    brandText: 'RAWBILLA STORE',
+    primaryColor: '#f59e0b',
+    secondaryColor: '#10b981',
     brandTextColor: '#14b8a6',
     brandImgSize: 48,
     brandFont: '',
@@ -271,18 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               description: c.description || '',
               sortOrder: c.sort_order
             })));
-          } else {
-            // Seed defaults since table is empty
-            const { error } = await supabase.from('categories').insert(DEFAULT_CATEGORIES.map(c => ({
-              id: c.id,
-              name: c.name,
-              emoji: c.emoji,
-              emoji_type: c.emojiType || 'emoji',
-              display_mode: c.displayMode || 'image-name',
-              description: c.description,
-              sort_order: c.sortOrder || 0
-            })));
-            if (error) console.error("Error seeding categories:", error);
+            setCategories([]);
           }
         }
 
@@ -316,45 +328,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
               orderCount: item.order_count || 0,
               hidden: item.hidden || false
             })));
-          } else {
-            // Seed defaults since table is empty
-            const { error } = await supabase.from('menu_items').insert(DEFAULT_MENU_ITEMS.map(item => ({
-              id: item.id,
-              name: item.name,
-              name_en: item.nameEn || null,
-              category: item.category,
-              price: item.price,
-              description: item.description,
-              dietary: item.dietary,
-              calories: item.calories,
-              image_emoji: item.imageEmoji,
-              images: item.images,
-              color_class: item.colorClass,
-              option_groups: item.optionGroups,
-              featured: item.featured,
-              discount: item.discount || null,
-              badge: item.badge || null,
-              prep_time: item.prepTime || null,
-              quality_label: item.qualityLabel || null,
-              show_calories: item.showCalories !== false,
-              show_prep_time: item.showPrepTime !== false,
-              show_quality: item.showQuality !== false,
-              unit: item.unit || null,
-              packaging: item.packaging || null,
-              out_of_stock: item.outOfStock || false,
-              sku: item.sku || null,
-              order_count: item.orderCount || 0,
-              hidden: item.hidden || false
-            })));
-            if (error) console.error("Error seeding menu items:", error);
+            setMenuItems([]);
           }
         }
 
         if (!settingsRes.error) {
           if (settingsRes.data) {
             const storeSettings = settingsRes.data;
+            let logoUrl = storeSettings.logo_url || '';
+            let headerBrandImgUrl = storeSettings.header_brand_img_url || '';
+
+            // Clean up the old default Google Drive logo if it matches
+            if (headerBrandImgUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
+              headerBrandImgUrl = '';
+              // Run query to clear it in Supabase
+              supabase.from('settings').update({ header_brand_img_url: '' }).eq('id', 'store').then(({ error }) => {
+                if (error) console.error("Error clearing old default logo from Supabase:", error);
+              });
+            }
+            if (logoUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
+              logoUrl = '';
+              supabase.from('settings').update({ logo_url: '' }).eq('id', 'store').then(({ error }) => {
+                if (error) console.error("Error clearing old default logo_url from Supabase:", error);
+              });
+            }
+
             setSettings({
-              logoUrl: storeSettings.logo_url || '',
+              logoUrl: logoUrl,
               whatsappNumber: storeSettings.whatsapp_number || '966531254475',
               discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
               discountEnabled: storeSettings.discount_enabled !== false,
@@ -369,7 +369,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               footerBgUrl: storeSettings.footer_bg_url || '',
               footerBgEnabled: storeSettings.footer_bg_enabled !== false,
               footerLogoUrl: storeSettings.footer_logo_url || '',
-              headerBrandImgUrl: storeSettings.header_brand_img_url || '',
+              headerBrandImgUrl: headerBrandImgUrl,
               brandText: storeSettings.brand_text || '',
               brandTextColor: storeSettings.brand_text_color || '#14b8a6',
               brandImgSize: storeSettings.brand_img_size || 48,
@@ -431,6 +431,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error('Failed to init/fetch database from Supabase:', err);
+      } finally {
+        setIsLoading(false);
       }
     }
     initDb();
@@ -663,16 +665,74 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const totalItems = cart.reduce((s, ci) => s + ci.quantity, 0);
     const subtotalRaw = cart.reduce((t, ci) => t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity, 0);
 
+    // Count total cartons in cart
+    const totalCartons = cart.reduce((s, ci) => {
+      const isCarton = (ci.menuItem.packaging && (
+        ci.menuItem.packaging.includes('كرتون') ||
+        ci.menuItem.packaging.includes('صندوق') ||
+        ci.menuItem.packaging.includes('box') ||
+        ci.menuItem.packaging.includes('carton')
+      )) || (ci.menuItem.unit && (
+        ci.menuItem.unit.includes('كرتون') ||
+        ci.menuItem.unit.includes('صندوق') ||
+        ci.menuItem.unit.includes('box') ||
+        ci.menuItem.unit.includes('carton')
+      ));
+      return s + (isCarton ? ci.quantity : 0);
+    }, 0);
+
+    // Calculate Carton Free offer "Buy X, get Y Free" per carton product
+    let cartonDiscountAmount = 0;
+    const freeCartonsDetail: { itemName: string; freeCount: number; refundedValue: number }[] = [];
+
+    const featuredConfig = settings.featured || DEFAULT_FEATURED;
+    const cartonDiscountEnabled = featuredConfig.cartonDiscountEnabled;
+    const cartonBuyThreshold = featuredConfig.cartonBuyThreshold || featuredConfig.cartonFreeThreshold || 5;
+    const cartonFreeCount = featuredConfig.cartonFreeCount || 1;
+
+    if (settings.discountEnabled && cartonDiscountEnabled && cartonBuyThreshold > 0 && cartonFreeCount > 0) {
+      cart.forEach(ci => {
+        // If a target item is specified, skip if this is not the target item
+        if (featuredConfig.cartonTargetItemId && featuredConfig.cartonTargetItemId !== 'all' && ci.menuItem.id !== featuredConfig.cartonTargetItemId) return;
+
+        const isCarton = (ci.menuItem.packaging && (
+          ci.menuItem.packaging.includes('كرتون') ||
+          ci.menuItem.packaging.includes('صندوق') ||
+          ci.menuItem.packaging.includes('box') ||
+          ci.menuItem.packaging.includes('carton')
+        )) || (ci.menuItem.unit && (
+          ci.menuItem.unit.includes('كرتون') ||
+          ci.menuItem.unit.includes('صندوق') ||
+          ci.menuItem.unit.includes('box') ||
+          ci.menuItem.unit.includes('carton')
+        ));
+        
+        if ((isCarton || featuredConfig.cartonTargetItemId) && ci.quantity >= cartonBuyThreshold) {
+          const freeCount = Math.floor(ci.quantity / cartonBuyThreshold) * cartonFreeCount;
+          const unitPrice = calcUnitPrice(ci.menuItem.price, ci.selectedOptions);
+          const refundedValue = freeCount * unitPrice;
+          cartonDiscountAmount += refundedValue;
+          freeCartonsDetail.push({
+            itemName: ci.menuItem.name,
+            freeCount,
+            refundedValue
+          });
+        }
+      });
+    }
+
     // Only use ENABLED tiers (not hidden ones for calculation — hidden means hidden from UI only)
-    // But EACH tier only checks its OWN type (items or value) — never cross-check
+    // But EACH tier only checks its OWN type (items, value, or cartons) — never cross-check
     const allTiers = [...(settings.discountTiers || [])].sort((a, b) => {
       const aVal = (a.discountType === 'value') ? (a.minValue || 0) : a.minItems;
       const bVal = (b.discountType === 'value') ? (b.minValue || 0) : b.minItems;
       return aVal - bVal;
     });
 
+    const subtotalAfterCarton = Math.max(0, subtotalRaw - cartonDiscountAmount);
+
     if (!settings.discountEnabled || allTiers.length === 0) {
-      return { totalItems, currentTier: null, nextTier: allTiers[0] || null, discountPercent: 0, discountAmount: 0, progressToNext: 0, itemsToNextTier: allTiers[0]?.minItems || 0 };
+      return { totalItems, currentTier: null, nextTier: allTiers[0] || null, discountPercent: 0, discountAmount: 0, progressToNext: 0, itemsToNextTier: allTiers[0]?.minItems || 0, cartonDiscountAmount, freeCartonsDetail };
     }
 
     // Find best matching tier — only match tiers of matching type
@@ -683,7 +743,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const tier = allTiers[i];
       let met = false;
       if (tier.discountType === 'value') {
-        met = subtotalRaw >= (tier.minValue || 0);
+        met = subtotalAfterCarton >= (tier.minValue || 0);
+      } else if (tier.discountType === 'cartons') {
+        met = totalCartons >= tier.minItems;
       } else {
         // items type — only check items, never value
         met = totalItems >= tier.minItems;
@@ -706,17 +768,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const discountPercent = currentTier?.discountPercent || 0;
-    const subtotal = subtotalRaw;
-    const discountAmount = subtotal * (discountPercent / 100);
+    const discountAmount = subtotalAfterCarton * (discountPercent / 100);
     let progressToNext = 0, itemsToNextTier = 0;
-    if (nextTier) { const prevMin = currentTier?.minItems || 0; progressToNext = Math.min(100, Math.max(0, ((totalItems - prevMin) / (nextTier.minItems - prevMin)) * 100)); itemsToNextTier = nextTier.minItems - totalItems; }
-    else if (currentTier) { progressToNext = 100; }
-    return { totalItems, currentTier, nextTier, discountPercent, discountAmount, progressToNext, itemsToNextTier };
-  }, [cart, settings.discountTiers, settings.discountEnabled]);
+
+    if (nextTier) {
+      const isVal = nextTier.discountType === 'value';
+      const isCartons = nextTier.discountType === 'cartons';
+      const targetVal = isVal ? (nextTier.minValue || 0) : nextTier.minItems;
+      const currentVal = isVal ? subtotalAfterCarton : (isCartons ? totalCartons : totalItems);
+      const prevMin = currentTier
+        ? (currentTier.discountType === 'value' ? (currentTier.minValue || 0) : currentTier.minItems)
+        : 0;
+      progressToNext = Math.min(100, Math.max(0, ((currentVal - prevMin) / (targetVal - prevMin)) * 100));
+      itemsToNextTier = Math.max(0, targetVal - currentVal);
+    } else if (currentTier) {
+      progressToNext = 100;
+    }
+    return { totalItems, currentTier, nextTier, discountPercent, discountAmount, progressToNext, itemsToNextTier, cartonDiscountAmount, freeCartonsDetail };
+  }, [cart, settings.discountTiers, settings.discountEnabled, settings.featured]);
 
   /* WhatsApp */
   const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
+<<<<<<< HEAD
     let msg = `*طلب جديد - RAWBILLA*\n`;
+=======
+    const storeName = settings.brandText || 'RAWBILLA STORE';
+    let msg = `*طلب جديد - ${storeName}*\n`;
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
     msg += `--------------------------------\n`;
     msg += `الاسم: *${name}*\n`;
     msg += `الهاتف: *${phone}*\n`;
@@ -729,8 +807,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const unitPrice = calcUnitPrice(ci.menuItem.price, ci.selectedOptions);
       const lineTotal = unitPrice * ci.quantity;
       subtotal += lineTotal;
-      msg += `${i+1}. *${ci.menuItem.name}*`;
-      if (ci.menuItem.nameEn) msg += ` - ${ci.menuItem.nameEn}`;
+      const variantOption = ci.selectedOptions.find(opt => {
+        const group = ci.menuItem.optionGroups?.find(g => g.options.some(o => o.id === opt.id));
+        return group?.isVariant;
+      });
+      const displayName = variantOption ? variantOption.name : ci.menuItem.name;
+      const displayOptions = ci.selectedOptions.filter(opt => opt.id !== variantOption?.id);
+
+      msg += `${i+1}. *${displayName}*`;
+      if (ci.menuItem.nameEn && !variantOption) msg += ` - ${ci.menuItem.nameEn}`;
       msg += `\n`;
       if (ci.menuItem.sku) msg += `    الكود: ${ci.menuItem.sku}\n`;
       // Price line — clean format
@@ -742,29 +827,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       msg += `    *الاجمالي: ${lineTotal.toFixed(2)} ر.س*\n`;
       if (ci.menuItem.packaging) msg += `    التعبئة: ${ci.menuItem.packaging}\n`;
-      if (ci.selectedOptions.length > 0) msg += `    الاضافات: ${ci.selectedOptions.map(o => `${o.name}${o.price > 0 ? ` (+${o.price})` : ''}`).join(' , ')}\n`;
+      if (displayOptions.length > 0) msg += `    الاضافات: ${displayOptions.map(o => `${o.name}${o.price > 0 ? ` (+${o.price})` : ''}`).join(' , ')}\n`;
       if (ci.notes) msg += `    ملاحظة: ${ci.notes}\n`;
       msg += `\n`;
     });
-    const { discountPercent, discountAmount } = discountResult;
-    const afterDiscount = subtotal - discountAmount; const tax = afterDiscount * 0.15;
+    const { discountPercent, discountAmount, cartonDiscountAmount, freeCartonsDetail } = discountResult;
+    const afterDiscount = subtotal - cartonDiscountAmount - discountAmount; const tax = afterDiscount * 0.15;
     const isFreeDelivery = afterDiscount >= 200;
     const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : 15) : 0;
     msg += `--------------------------------\n`;
     msg += `المجموع الفرعي: ${subtotal.toFixed(2)} ر.س\n`;
-    if (discountPercent > 0) msg += `خصم الكمية (${discountPercent}%): -${discountAmount.toFixed(2)} ر.س\n`;
+    if (cartonDiscountAmount > 0) {
+      msg += `خصم كرتون مجاني:\n`;
+      freeCartonsDetail.forEach(d => {
+        msg += `  - ${d.itemName}: عدد ${d.freeCount} كرتون مجاناً (-${d.refundedValue.toFixed(2)} ر.س)\n`;
+      });
+    }
+    if (discountPercent > 0) {
+      const typeLabel = discountResult.currentTier?.discountType === 'cartons' ? 'خصم الكراتين' : (discountResult.currentTier?.discountType === 'value' ? 'خصم القيمة' : 'خصم الكمية');
+      msg += `${typeLabel} (${discountPercent}%): -${discountAmount.toFixed(2)} ر.س\n`;
+    }
     msg += `الضريبة (15%): ${tax.toFixed(2)} ر.س\n`;
     if (deliveryFee > 0) msg += `رسوم التوصيل: ${deliveryFee.toFixed(2)} ر.س\n`;
     if (isFreeDelivery && deliveryMethod === 'delivery') msg += `التوصيل: مجاني\n`;
     msg += `--------------------------------\n`;
     msg += `*الاجمالي: ${(afterDiscount + tax + deliveryFee).toFixed(2)} ر.س*\n\n`;
+<<<<<<< HEAD
     msg += `شكرا لاختياركم RAWBILLA`;
+=======
+    msg += `شكرا لاختياركم ${storeName}`;
+>>>>>>> c7128de (تعديل لون البانر وإضافة كود الخصم)
     window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   return (
     <AppContext.Provider value={{
-      isAdmin, login, logout,
+      isAdmin, login, logout, isLoading,
       categories, addCategory, updateCategory, deleteCategory, replaceCategories,
       menuItems, addMenuItem, updateMenuItem, deleteMenuItem, replaceMenuItems,
       cart, addToCart, updateCartQuantity, removeFromCart, updateCartNotes, clearCart,

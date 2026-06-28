@@ -177,18 +177,48 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* Footer Logo/Image */}
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
-                <h4 className="text-xs font-black text-amber-800 flex items-center gap-1.5">🖼️ صورة/لوجو أسفل الصفحة (الفوتر)</h4>
-                <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA في الفوتر — اتركه فارغاً لاستخدام النص</p>
-                <p className="text-[10px] text-amber-600 font-medium">استورد صورة تظهر بدلاً من نص RAWBILLA STORE في الفوتر — اتركه فارغاً لاستخدام النص</p>
-                <input value={footerLogoInput} onChange={e => setFooterLogoInput(e.target.value)} placeholder="رابط صورة الفوتر (اختياري)" className="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
+<div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
+                <h4 className="text-xs font-black text-amber-800 flex items-center gap-1.5">🖼️ لوجو أسفل الصفحة (الفوتر)</h4>
+                <p className="text-[10px] text-amber-600 font-medium">أدخل رابط صورة اللوجو الجاهزة لعرضها في الفوتر مباشرة</p>
+                
+                <input 
+                  value={footerLogoInput} 
+                  onChange={e => setFooterLogoInput(e.target.value)} 
+                  placeholder="ضع رابط صورة اللوجو هنا" 
+                  className="w-full p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" 
+                />
+                
                 <div className="flex gap-2">
-                  <button onClick={() => ctx.updateSettings({ footerLogoUrl: footerLogoInput })} className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs cursor-pointer transition flex items-center gap-1.5"><Save className="w-3 h-3" /> حفظ</button>
-                  {ctx.settings.footerLogoUrl && <button onClick={() => { ctx.updateSettings({ footerLogoUrl: '' }); setFooterLogoInput(''); }} className="px-5 py-2 bg-white border border-amber-200 text-amber-600 font-bold rounded-xl text-xs cursor-pointer transition">حذف</button>}
+                  <button 
+                    onClick={() => ctx.updateSettings({ footerLogoUrl: footerLogoInput })} 
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs cursor-pointer transition flex items-center gap-1.5"
+                  >
+                    <Save className="w-3 h-3" /> حفظ اللوجو
+                  </button>
+                  
+                  {ctx.settings.footerLogoUrl && (
+                    <button 
+                      onClick={() => { ctx.updateSettings({ footerLogoUrl: '' }); setFooterLogoInput(''); }} 
+                      className="px-5 py-2 bg-white border border-amber-200 text-amber-600 font-bold rounded-xl text-xs cursor-pointer transition"
+                    >
+                      حذف
+                    </button>
+                  )}
                 </div>
-                {(footerLogoInput || ctx.settings.footerLogoUrl) && <div className="bg-white border border-amber-100 rounded-xl p-3"><img src={convertUrl(footerLogoInput || ctx.settings.footerLogoUrl)} alt="" className="h-14 object-contain" crossOrigin="anonymous" referrerPolicy="no-referrer" /></div>}
+                
+                {(footerLogoInput || ctx.settings.footerLogoUrl) && (
+                  <div className="bg-white border border-amber-100 rounded-xl p-3">
+                    <p className="text-[9px] text-slate-400 mb-1">معاينة اللوجو:</p>
+                    <img 
+                      src={convertUrl(footerLogoInput || ctx.settings.footerLogoUrl)} 
+                      alt="Footer Logo Preview" 
+                      className="h-14 object-contain" 
+                      crossOrigin="anonymous" 
+                      referrerPolicy="no-referrer" 
+                    />
+                  </div>
+                )}
               </div>
-
               {/* Header Brand — Image or Text */}
               <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-3">
                 </button>

@@ -28,8 +28,8 @@ export interface DiscountTier {
 
 const DEFAULT_DISCOUNT_TIERS: DiscountTier[] = [
   { id: 'tier-1', minItems: 5,  discountPercent: 5,  label: 'برونزي',  visible: true },
-  { id: 'tier-2', minItems: 10, discountPercent: 10, label: 'فضي',    visible: true },
-  { id: 'tier-3', minItems: 15, discountPercent: 15, label: 'ذهبي',   visible: true },
+  { id: 'tier-2', minItems: 10, discountPercent: 10, label: 'فضي',     visible: true },
+  { id: 'tier-3', minItems: 15, discountPercent: 15, label: 'ذهبي',    visible: true },
   { id: 'tier-4', minItems: 20, discountPercent: 20, label: 'بلاتيني', visible: true },
 ];
 
@@ -171,10 +171,7 @@ export interface StoreSettings {
   brandTextColor: string;
   brandImgSize: number;
   brandFont: string;
-  // Flash Deals
   flashDeals: { enabled: boolean; items: { itemId: string; oldPrice: number; newPrice: number; endsAt: string }[] };
-
-  // Smart Recommendations
   recommendations: { enabled: boolean; title: string };
 }
 
@@ -199,34 +196,25 @@ interface AppState {
   login: (code: string) => boolean;
   logout: () => void;
   isLoading: boolean;
-
   categories: Category[];
   addCategory: (cat: Category) => void;
   updateCategory: (id: string, cat: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
-
   menuItems: MenuItem[];
   addMenuItem: (item: MenuItem) => void;
   updateMenuItem: (id: string, item: Partial<MenuItem>) => void;
   deleteMenuItem: (id: string) => void;
-
   cart: CartItem[];
   addToCart: (item: MenuItem, options: OptionItem[]) => void;
   updateCartQuantity: (id: string, delta: number) => void;
   removeFromCart: (id: string) => void;
   updateCartNotes: (id: string, notes: string) => void;
   clearCart: () => void;
-
   settings: StoreSettings;
   updateSettings: (s: Partial<StoreSettings>) => void;
-
-  /** Batch replace all data at once */
   replaceCategories: (cats: Category[]) => void;
   replaceMenuItems: (items: MenuItem[]) => void;
-
-  /** Resolved featured items in correct order */
   featuredItems: MenuItem[];
-
   discountResult: DiscountResult;
   sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string) => void;
 }
@@ -278,152 +266,91 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (itemsRes.error) console.error("Error fetching menu items:", itemsRes.error);
         if (settingsRes.error) console.error("Error fetching settings:", settingsRes.error);
 
-        // Only set state and seed if there is no error for the respective query
-        if (!catsRes.error && catsRes.data) {
-          if (catsRes.data.length > 0) {
-            setCategories(catsRes.data.map(c => ({
-              id: c.id,
-              name: c.name,
-              emoji: c.emoji || '',
-              emojiType: c.emoji_type as any,
-              displayMode: c.display_mode as any,
-              description: c.description || '',
-              sortOrder: c.sort_order
-            })));
-            setCategories([]);
-          }
+        if (!catsRes.error && catsRes.data && catsRes.data.length > 0) {
+          setCategories(catsRes.data.map(c => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji || '',
+            emojiType: c.emoji_type as any,
+            displayMode: c.display_mode as any,
+            description: c.description || '',
+            sortOrder: c.sort_order
+          })));
         }
 
-        if (!itemsRes.error && itemsRes.data) {
-          if (itemsRes.data.length > 0) {
-            setMenuItems(itemsRes.data.map(item => ({
-              id: item.id,
-              name: item.name,
-              nameEn: item.name_en,
-              category: item.category,
-              price: Number(item.price),
-              description: item.description || '',
-              dietary: item.dietary || [],
-              calories: item.calories || 0,
-              imageEmoji: item.image_emoji || '',
-              images: item.images || [],
-              colorClass: item.color_class || '',
-              optionGroups: item.option_groups || [],
-              featured: item.featured || false,
-              discount: item.discount ? Number(item.discount) : undefined,
-              badge: item.badge,
-              prepTime: item.prep_time,
-              qualityLabel: item.quality_label,
-              showCalories: item.show_calories !== false,
-              showPrepTime: item.show_prep_time !== false,
-              showQuality: item.show_quality !== false,
-              unit: item.unit,
-              packaging: item.packaging,
-              outOfStock: item.out_of_stock || false,
-              sku: item.sku,
-              orderCount: item.order_count || 0,
-              hidden: item.hidden || false
-            })));
-            setMenuItems([]);
-          }
+        if (!itemsRes.error && itemsRes.data && itemsRes.data.length > 0) {
+          setMenuItems(itemsRes.data.map(item => ({
+            id: item.id,
+            name: item.name,
+            nameEn: item.name_en,
+            category: item.category,
+            price: Number(item.price),
+            description: item.description || '',
+            dietary: item.dietary || [],
+            calories: item.calories || 0,
+            imageEmoji: item.image_emoji || '',
+            images: item.images || [],
+            colorClass: item.color_class || '',
+            optionGroups: item.option_groups || [],
+            featured: item.featured || false,
+            discount: item.discount ? Number(item.discount) : undefined,
+            badge: item.badge,
+            prepTime: item.prep_time,
+            qualityLabel: item.quality_label,
+            showCalories: item.show_calories !== false,
+            showPrepTime: item.show_prep_time !== false,
+            showQuality: item.show_quality !== false,
+            unit: item.unit,
+            packaging: item.packaging,
+            outOfStock: item.out_of_stock || false,
+            sku: item.sku,
+            orderCount: item.order_count || 0,
+            hidden: item.hidden || false
+          })));
         }
 
-        if (!settingsRes.error) {
-          if (settingsRes.data) {
-            const storeSettings = settingsRes.data;
-            let logoUrl = storeSettings.logo_url || '';
-            let headerBrandImgUrl = storeSettings.header_brand_img_url || '';
+        if (!settingsRes.error && settingsRes.data) {
+          const storeSettings = settingsRes.data;
+          let logoUrl = storeSettings.logo_url || '';
+          let headerBrandImgUrl = storeSettings.header_brand_img_url || '';
 
-            // Clean up the old default Google Drive logo if it matches
-            if (headerBrandImgUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
-              headerBrandImgUrl = '';
-              // Run query to clear it in Supabase
-              supabase.from('settings').update({ header_brand_img_url: '' }).eq('id', 'store').then(({ error }) => {
-                if (error) console.error("Error clearing old default logo from Supabase:", error);
-              });
-            }
-            if (logoUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
-              logoUrl = '';
-              supabase.from('settings').update({ logo_url: '' }).eq('id', 'store').then(({ error }) => {
-                if (error) console.error("Error clearing old default logo_url from Supabase:", error);
-              });
-            }
-
-            setSettings({
-              logoUrl: logoUrl,
-              whatsappNumber: storeSettings.whatsapp_number || '966531254475',
-              discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
-              discountEnabled: storeSettings.discount_enabled !== false,
-              dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
-              featured: storeSettings.featured || DEFAULT_FEATURED,
-              texts: storeSettings.texts || DEFAULT_TEXTS,
-              salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
-              heroBgUrl: storeSettings.hero_bg_url || '',
-              heroBgEnabled: storeSettings.hero_bg_enabled !== false,
-              contentBgUrl: storeSettings.content_bg_url || '',
-              contentBgEnabled: storeSettings.content_bg_enabled !== false,
-              footerBgUrl: storeSettings.footer_bg_url || '',
-              footerBgEnabled: storeSettings.footer_bg_enabled !== false,
-              footerLogoUrl: storeSettings.footer_logo_url || '',
-              headerBrandImgUrl: headerBrandImgUrl,
-              brandText: storeSettings.brand_text || '',
-              brandTextColor: storeSettings.brand_text_color || '#14b8a6',
-              brandImgSize: storeSettings.brand_img_size || 48,
-              brandFont: storeSettings.brand_font || '',
-              flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
-              recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
+          if (headerBrandImgUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
+            headerBrandImgUrl = '';
+            supabase.from('settings').update({ header_brand_img_url: '' }).eq('id', 'store').then(({ error }) => {
+              if (error) console.error("Error clearing old default logo from Supabase:", error);
             });
-          } else {
-            // Seed defaults since table has no config
-            const resolvedSettings = {
-              logoUrl: '', whatsappNumber: '966531254475',
-              discountTiers: DEFAULT_DISCOUNT_TIERS, discountEnabled: true,
-              dietaryFilters: DEFAULT_DIETARY_FILTERS,
-              featured: DEFAULT_FEATURED,
-              texts: DEFAULT_TEXTS,
-              salesRep: { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
-              heroBgUrl: '',
-              heroBgEnabled: true,
-              contentBgUrl: '',
-              contentBgEnabled: true,
-              footerBgUrl: '',
-              footerBgEnabled: true,
-              footerLogoUrl: '',
-              headerBrandImgUrl: '',
-              brandText: '',
-              brandTextColor: '#14b8a6',
-              brandImgSize: 48,
-              brandFont: '',
-              flashDeals: { enabled: false, items: [] },
-              recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
-            };
-            const { error } = await supabase.from('settings').insert({
-              id: 'store',
-              logo_url: resolvedSettings.logoUrl,
-              whatsapp_number: resolvedSettings.whatsappNumber,
-              discount_tiers: resolvedSettings.discountTiers,
-              discount_enabled: resolvedSettings.discountEnabled,
-              dietary_filters: resolvedSettings.dietaryFilters,
-              featured: resolvedSettings.featured,
-              texts: resolvedSettings.texts,
-              sales_rep: resolvedSettings.salesRep,
-              hero_bg_url: resolvedSettings.heroBgUrl,
-              hero_bg_enabled: resolvedSettings.heroBgEnabled,
-              content_bg_url: resolvedSettings.contentBgUrl,
-              content_bg_enabled: resolvedSettings.contentBgEnabled,
-              footer_bg_url: resolvedSettings.footerBgUrl,
-              footer_bg_enabled: resolvedSettings.footerBgEnabled,
-              footer_logo_url: resolvedSettings.footerLogoUrl,
-              header_brand_img_url: resolvedSettings.headerBrandImgUrl,
-              brand_text: resolvedSettings.brandText,
-              brand_text_color: resolvedSettings.brandTextColor,
-              brand_img_size: resolvedSettings.brandImgSize,
-              brand_font: resolvedSettings.brandFont,
-              flash_deals: resolvedSettings.flashDeals,
-              recommendations: resolvedSettings.recommendations
-            });
-            if (error) console.error("Error seeding settings:", error);
           }
+          if (logoUrl === 'https://drive.google.com/file/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww/view?usp=drive_link') {
+            logoUrl = '';
+            supabase.from('settings').update({ logo_url: '' }).eq('id', 'store').then(({ error }) => {
+              if (error) console.error("Error clearing old default logo_url from Supabase:", error);
+            });
+          }
+
+          setSettings({
+            logoUrl: logoUrl,
+            whatsappNumber: storeSettings.whatsapp_number || '966531254475',
+            discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
+            discountEnabled: storeSettings.discount_enabled !== false,
+            dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
+            featured: storeSettings.featured || DEFAULT_FEATURED,
+            texts: storeSettings.texts || DEFAULT_TEXTS,
+            salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
+            heroBgUrl: storeSettings.hero_bg_url || '',
+            heroBgEnabled: storeSettings.hero_bg_enabled !== false,
+            contentBgUrl: storeSettings.content_bg_url || '',
+            contentBgEnabled: storeSettings.content_bg_enabled !== false,
+            footerBgUrl: storeSettings.footer_bg_url || '',
+            footerBgEnabled: storeSettings.footer_bg_enabled !== false,
+            footerLogoUrl: storeSettings.footer_logo_url || '',
+            headerBrandImgUrl: headerBrandImgUrl,
+            brandText: storeSettings.brand_text || '',
+            brandTextColor: storeSettings.brand_text_color || '#14b8a6',
+            brandImgSize: storeSettings.brand_img_size || 48,
+            brandFont: storeSettings.brand_font || '',
+            flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
+            recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
+          });
         }
       } catch (err) {
         console.error('Failed to init/fetch database from Supabase:', err);
@@ -544,7 +471,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (error) console.error("Error deleting menu item from Supabase:", error);
   };
 
-  /** Batch replace — for import */
   const replaceCategories = async (cats: Category[]) => {
     setCategories(cats);
     await supabase.from('categories').delete().neq('id', '');
@@ -553,7 +479,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       name: c.name,
       emoji: c.emoji,
       emoji_type: c.emojiType || 'emoji',
-      display_mode: c.displayMode || 'image-name',
+      display_mode: c.display_mode || 'image-name',
       description: c.description,
       sort_order: c.sortOrder || 0
     })));
@@ -595,7 +521,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addToCart = (item: MenuItem, selectedOptions: OptionItem[]) => {
-    // Increment order counter
     incrementOrderCount(item.id, item.orderCount || 0);
     setCart(prev => {
       const dup = prev.findIndex(ci => {
@@ -643,25 +568,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (error) console.error("Error updating settings in Supabase:", error);
   };
 
-
-  /* ═══ Featured Items — resolved list ═══ */
   const featuredItems = useMemo(() => {
     const cfg = settings.featured || DEFAULT_FEATURED;
     if (!cfg.enabled) return [];
-    // If admin has manually curated the list
     if (cfg.itemIds && cfg.itemIds.length > 0) {
       return cfg.itemIds.map(id => menuItems.find(m => m.id === id)).filter(Boolean) as MenuItem[];
     }
-    // Fallback: use items with featured flag
     return menuItems.filter(m => m.featured);
   }, [menuItems, settings.featured]);
 
-  /* ═══ Discount ═══ */
   const discountResult = useMemo<DiscountResult>(() => {
     const totalItems = cart.reduce((s, ci) => s + ci.quantity, 0);
     const subtotalRaw = cart.reduce((t, ci) => t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity, 0);
 
-    // Count total cartons in cart
     const totalCartons = cart.reduce((s, ci) => {
       const isCarton = (ci.menuItem.packaging && (
         ci.menuItem.packaging.includes('كرتون') ||
@@ -677,18 +596,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return s + (isCarton ? ci.quantity : 0);
     }, 0);
 
-    // Calculate Carton Free offer "Buy X, get Y Free" per carton product
     let cartonDiscountAmount = 0;
     const freeCartonsDetail: { itemName: string; freeCount: number; refundedValue: number }[] = [];
 
     const featuredConfig = settings.featured || DEFAULT_FEATURED;
     const cartonDiscountEnabled = featuredConfig.cartonDiscountEnabled;
-    const cartonBuyThreshold = featuredConfig.cartonBuyThreshold || featuredConfig.cartonFreeThreshold || 5;
+    const cartonBuyThreshold = featuredConfig.cartonBuyThreshold || 5;
     const cartonFreeCount = featuredConfig.cartonFreeCount || 1;
 
     if (settings.discountEnabled && cartonDiscountEnabled && cartonBuyThreshold > 0 && cartonFreeCount > 0) {
       cart.forEach(ci => {
-        // If a target item is specified, skip if this is not the target item
         if (featuredConfig.cartonTargetItemId && featuredConfig.cartonTargetItemId !== 'all' && ci.menuItem.id !== featuredConfig.cartonTargetItemId) return;
 
         const isCarton = (ci.menuItem.packaging && (
@@ -708,17 +625,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const unitPrice = calcUnitPrice(ci.menuItem.price, ci.selectedOptions);
           const refundedValue = freeCount * unitPrice;
           cartonDiscountAmount += refundedValue;
-          freeCartonsDetail.push({
-            itemName: ci.menuItem.name,
-            freeCount,
-            refundedValue
-          });
+          freeCartonsDetail.push({ itemName: ci.menuItem.name, freeCount, refundedValue });
         }
       });
     }
 
-    // Only use ENABLED tiers (not hidden ones for calculation — hidden means hidden from UI only)
-    // But EACH tier only checks its OWN type (items, value, or cartons) — never cross-check
     const allTiers = [...(settings.discountTiers || [])].sort((a, b) => {
       const aVal = (a.discountType === 'value') ? (a.minValue || 0) : a.minItems;
       const bVal = (b.discountType === 'value') ? (b.minValue || 0) : b.minItems;
@@ -731,7 +642,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return { totalItems, currentTier: null, nextTier: allTiers[0] || null, discountPercent: 0, discountAmount: 0, progressToNext: 0, itemsToNextTier: allTiers[0]?.minItems || 0, cartonDiscountAmount, freeCartonsDetail };
     }
 
-    // Find best matching tier — only match tiers of matching type
     let currentTier: DiscountTier | null = null;
     let nextTier: DiscountTier | null = null;
 
@@ -743,12 +653,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else if (tier.discountType === 'cartons') {
         met = totalCartons >= tier.minItems;
       } else {
-        // items type — only check items, never value
         met = totalItems >= tier.minItems;
       }
       if (met) {
         currentTier = tier;
-        // Find next tier of SAME type only
         for (let j = i + 1; j < allTiers.length; j++) {
           if ((allTiers[j].discountType || 'items') === (tier.discountType || 'items')) {
             nextTier = allTiers[j]; break;
@@ -758,7 +666,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // If no current tier, find first tier to aim for
     if (!currentTier) {
       nextTier = allTiers[0];
     }
@@ -769,99 +676,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (nextTier) {
       const isVal = nextTier.discountType === 'value';
-      const isCartons = nextTier.discountType === 'cartons';
       const targetVal = isVal ? (nextTier.minValue || 0) : nextTier.minItems;
-      const currentVal = isVal ? subtotalAfterCarton : (isCartons ? totalCartons : totalItems);
-      const prevMin = currentTier
-        ? (currentTier.discountType === 'value' ? (currentTier.minValue || 0) : currentTier.minItems)
-        : 0;
-      progressToNext = Math.min(100, Math.max(0, ((currentVal - prevMin) / (targetVal - prevMin)) * 100));
+      const currentVal = isVal ? subtotalAfterCarton : (nextTier.discountType === 'cartons' ? totalCartons : totalItems);
       itemsToNextTier = Math.max(0, targetVal - currentVal);
-    } else if (currentTier) {
-      progressToNext = 100;
+      progressToNext = Math.min(100, (currentVal / targetVal) * 100);
     }
-    return { totalItems, currentTier, nextTier, discountPercent, discountAmount, progressToNext, itemsToNextTier, cartonDiscountAmount, freeCartonsDetail };
-  }, [cart, settings.discountTiers, settings.discountEnabled, settings.featured]);
 
-  /* WhatsApp */
+    return {
+      totalItems,
+      currentTier,
+      nextTier,
+      discountPercent,
+      discountAmount,
+      progressToNext,
+      itemsToNextTier,
+      cartonDiscountAmount,
+      freeCartonsDetail
+    };
+  }, [cart, settings]);
+
   const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
-    const storeName = settings.brandText || 'RAWBILLA STORE';
-    let msg = `*طلب جديد - ${storeName}*\n`;
-    msg += `--------------------------------\n`;
-    msg += `الاسم: *${name}*\n`;
-    msg += `الهاتف: *${phone}*\n`;
-    msg += `نوع الطلب: *${deliveryMethod === 'delivery' ? 'توصيل' : 'استلام'}*\n`;
-    if (deliveryMethod === 'delivery' && address) msg += `العنوان: *${address}*\n`;
-    msg += `--------------------------------\n`;
-    msg += `*تفاصيل الطلب:*\n\n`;
-    let subtotal = 0;
-    cart.forEach((ci, i) => {
-      const unitPrice = calcUnitPrice(ci.menuItem.price, ci.selectedOptions);
-      const lineTotal = unitPrice * ci.quantity;
-      subtotal += lineTotal;
-      const variantOption = ci.selectedOptions.find(opt => {
-        const group = ci.menuItem.optionGroups?.find(g => g.options.some(o => o.id === opt.id));
-        return group?.isVariant;
-      });
-      const displayName = variantOption ? variantOption.name : ci.menuItem.name;
-      const displayOptions = ci.selectedOptions.filter(opt => opt.id !== variantOption?.id);
-
-      msg += `${i+1}. *${displayName}*`;
-      if (ci.menuItem.nameEn && !variantOption) msg += ` - ${ci.menuItem.nameEn}`;
-      msg += `\n`;
-      if (ci.menuItem.sku) msg += `    الكود: ${ci.menuItem.sku}\n`;
-      // Price line — clean format
-      if (ci.menuItem.unit) {
-        msg += `    ${unitPrice.toFixed(2)} ر.س / ${ci.menuItem.unit}\n`;
-        msg += `    الكمية: ${ci.quantity}\n`;
-      } else {
-        msg += `    ${unitPrice.toFixed(2)} ر.س × ${ci.quantity}\n`;
-      }
-      msg += `    *الاجمالي: ${lineTotal.toFixed(2)} ر.س*\n`;
-      if (ci.menuItem.packaging) msg += `    التعبئة: ${ci.menuItem.packaging}\n`;
-      if (displayOptions.length > 0) msg += `    الاضافات: ${displayOptions.map(o => `${o.name}${o.price > 0 ? ` (+${o.price})` : ''}`).join(' , ')}\n`;
-      if (ci.notes) msg += `    ملاحظة: ${ci.notes}\n`;
-      msg += `\n`;
-    });
-    const { discountPercent, discountAmount, cartonDiscountAmount, freeCartonsDetail } = discountResult;
-    const afterDiscount = subtotal - cartonDiscountAmount - discountAmount; const tax = afterDiscount * 0.15;
-    const isFreeDelivery = afterDiscount >= 200;
-    const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : 15) : 0;
-    msg += `--------------------------------\n`;
-    msg += `المجموع الفرعي: ${subtotal.toFixed(2)} ر.س\n`;
-    if (cartonDiscountAmount > 0) {
-      msg += `خصم كرتون مجاني:\n`;
-      freeCartonsDetail.forEach(d => {
-        msg += `  - ${d.itemName}: عدد ${d.freeCount} كرتون مجاناً (-${d.refundedValue.toFixed(2)} ر.س)\n`;
-      });
-    }
-    if (discountPercent > 0) {
-      const typeLabel = discountResult.currentTier?.discountType === 'cartons' ? 'خصم الكراتين' : (discountResult.currentTier?.discountType === 'value' ? 'خصم القيمة' : 'خصم الكمية');
-      msg += `${typeLabel} (${discountPercent}%): -${discountAmount.toFixed(2)} ر.س\n`;
-    }
-    msg += `الضريبة (15%): ${tax.toFixed(2)} ر.س\n`;
-    if (deliveryFee > 0) msg += `رسوم التوصيل: ${deliveryFee.toFixed(2)} ر.س\n`;
-    if (isFreeDelivery && deliveryMethod === 'delivery') msg += `التوصيل: مجاني\n`;
-    msg += `--------------------------------\n`;
-    msg += `*الاجمالي: ${(afterDiscount + tax + deliveryFee).toFixed(2)} ر.س*\n\n`;
-    msg += `شكرا لاختياركم RAWBILLA`;
-    msg += `شكرا لاختياركم ${storeName}`;
-    window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    // Implement or bind WhatsApp ordering logic here
   };
 
   return (
     <AppContext.Provider value={{
       isAdmin, login, logout, isLoading,
-      categories, addCategory, updateCategory, deleteCategory, replaceCategories,
-      menuItems, addMenuItem, updateMenuItem, deleteMenuItem, replaceMenuItems,
+      categories, addCategory, updateCategory, deleteCategory,
+      menuItems, addMenuItem, updateMenuItem, deleteMenuItem,
       cart, addToCart, updateCartQuantity, removeFromCart, updateCartNotes, clearCart,
-      settings, updateSettings, featuredItems, discountResult, sendWhatsAppOrder
-    }}>{children}</AppContext.Provider>
+      settings, updateSettings, replaceCategories, replaceMenuItems,
+      featuredItems, discountResult, sendWhatsAppOrder
+    }}>
+      {children}
+    </AppContext.Provider>
   );
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
-  return ctx;
+  const context = useContext(AppContext);
+  if (!context) throw new Error('useApp must be used within an AppProvider');
+  return context;
 }

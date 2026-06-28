@@ -16,7 +16,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [catForm, setCatForm] = useState<Partial<Category>>({}); const [editingCatId, setEditingCatId] = useState<string|null>(null); const [showCatForm, setShowCatForm] = useState(false);
   const [prodForm, setProdForm] = useState<Partial<MenuItem>>({}); const [editingProdId, setEditingProdId] = useState<string|null>(null); const [showProdForm, setShowProdForm] = useState(false); const [newImageUrl, setNewImageUrl] = useState('');
-  const [logoInput, setLogoInput] = useState(ctx.settings.logoUrl);
   const [tierForm, setTierForm] = useState<Partial<DiscountTier>>({}); const [editingTierId, setEditingTierId] = useState<string|null>(null); const [showTierForm, setShowTierForm] = useState(false);
   const [dietForm, setDietForm] = useState<Partial<DietaryFilter>>({}); const [editingDietId, setEditingDietId] = useState<string|null>(null); const [showDietForm, setShowDietForm] = useState(false);
   const dietaryFilters = ctx.settings.dietaryFilters || [];
@@ -175,8 +174,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               <div>
                 <label className="text-sm font-bold text-slate-700 mb-2 block flex items-center gap-2"><Image className="w-4 h-4 text-amber-500" /> رابط اللوجو</label>
                 <input type="text" value={logoInput} onChange={e => setLogoInput(e.target.value)} placeholder="https://... أو Google Drive" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:border-amber-500" />
-                <button onClick={() => ctx.updateSettings({ logoUrl: logoInput })} className="mt-3 px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition flex items-center gap-2"><Upload className="w-4 h-4" /> حفظ اللوجو</button>
-                {ctx.settings.logoUrl && (<div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100"><p className="text-xs font-bold text-slate-600 mb-2">المعاينة:</p><img src={convertUrl(ctx.settings.logoUrl)} alt="" className="h-16 object-contain" crossOrigin="anonymous" referrerPolicy="no-referrer" /><button onClick={() => { ctx.updateSettings({ logoUrl: '' }); setLogoInput(''); }} className="mt-2 text-xs text-red-500 font-bold hover:underline cursor-pointer">حذف اللوجو</button></div>)}
               </div>
 
               {/* Footer Logo/Image */}
@@ -194,57 +191,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
 
               {/* Header Brand — Image or Text */}
               <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-3">
-                <h4 className="text-xs font-black text-green-800 flex items-center gap-1.5">✍️ تغيير اسم/شعار العلامة (بدلاً من RAWBILLA STORE)</h4>
-                <p className="text-[10px] text-green-600 font-medium">اختر: صورة شعار مخصصة — أو اكتب نص بديل بلون مخصص</p>
-
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-600 block">صورة الشعار (أعلى وأسفل الصفحة):</label>
-                  <input value={headerBrandImgInput} onChange={e => setHeaderBrandImgInput(e.target.value)} placeholder="رابط صورة الشعار" className="w-full p-2.5 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                  {headerBrandImgInput && (
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white border border-green-100 rounded-xl p-2"><img src={convertUrl(headerBrandImgInput)} alt="" className="h-10 object-contain" crossOrigin="anonymous" referrerPolicy="no-referrer" /></div>
-                      <button onClick={() => setHeaderBrandImgInput('')} className="text-xs text-red-500 font-bold cursor-pointer hover:underline">حذف</button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-green-200">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">حجم الصورة (بكسل):</label>
-                    <input type="number" min={24} max={120} value={brandImgSizeInput} onChange={e => setBrandImgSizeInput(parseInt(e.target.value) || 48)}
-                      className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">أو اكتب نص بديل:</label>
-                    <input value={brandTextInput} onChange={e => setBrandTextInput(e.target.value)} placeholder="مثال: حلويات النخبة"
-                      className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-bold font-ar" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">لون النص:</label>
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={brandTextColorInput} onChange={e => setBrandTextColorInput(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
-                      <input value={brandTextColorInput} onChange={e => setBrandTextColorInput(e.target.value)} className="flex-1 p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">اسم الخط (Google Fonts):</label>
-                    <input value={brandFontInput} onChange={e => setBrandFontInput(e.target.value)} placeholder="مثال: Cairo, Amiri, Lalezar"
-                      className="w-full p-2 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                    <p className="text-[9px] text-slate-400 mt-1">اكتب اسم خط Google Fonts مثل: Cairo, Amiri, Lalezar, Changa</p>
-                  </div>
-                </div>
-                {brandTextInput && (
-                  <div className="bg-white border border-green-100 rounded-xl p-3 text-center">
-                    <p className="text-[9px] text-slate-400 mb-1">معاينة:</p>
-                    <span className="text-xl font-black" style={{ color: brandTextColorInput, fontFamily: brandFontInput ? `'${brandFontInput}',sans-serif` : 'inherit' }}>{brandTextInput}</span>
-                  </div>
-                )}
-                <button onClick={() => ctx.updateSettings({ headerBrandImgUrl: headerBrandImgInput, brandText: brandTextInput, brandTextColor: brandTextColorInput, brandImgSize: brandImgSizeInput, brandFont: brandFontInput })}
-                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm cursor-pointer transition flex items-center gap-2">
-                  <Save className="w-3.5 h-3.5" /> حفظ إعدادات الشعار والعلامة
                 </button>
               </div>
 
@@ -507,7 +453,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       if (result.discountTiers.length > 0) ctx.updateSettings({ discountTiers: result.discountTiers });
                       // Apply general settings
                       const gs = result.generalSettings;
-                      if (gs['logoUrl']) ctx.updateSettings({ logoUrl: gs['logoUrl'] });
                       if (gs['whatsappNumber']) ctx.updateSettings({ whatsappNumber: gs['whatsappNumber'] });
                       if (gs['discountEnabled']) ctx.updateSettings({ discountEnabled: gs['discountEnabled'] === 'نعم' });
                       if (gs['featured.title'] || gs['featured.enabled']) {
@@ -566,7 +511,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       if (result.dietaryFilters.length > 0) newSettings.dietaryFilters = result.dietaryFilters;
                       if (result.discountTiers.length > 0) newSettings.discountTiers = result.discountTiers;
                       const gs = result.generalSettings;
-                      if (gs['logoUrl']) newSettings.logoUrl = gs['logoUrl'];
                       if (gs['whatsappNumber']) newSettings.whatsappNumber = gs['whatsappNumber'];
                       localStorage.setItem('pc_settings_v3', JSON.stringify(newSettings));
                       setImportStatus({ type: 'success', msg: '✅ تم الاستبدال! جاري إعادة التحميل...' });
@@ -678,7 +622,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   <h4 className="text-sm font-bold text-amber-800">{editingProdId ? 'تعديل' : 'إضافة منتج جديد'}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input placeholder="اسم المنتج بالعربي *" value={prodForm.name||''} onChange={e => setProdForm(p => ({ ...p, name: e.target.value }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />
-                    <input placeholder="Product Name in English" value={prodForm.nameEn||''} onChange={e => setProdForm(p => ({ ...p, nameEn: e.target.value }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 italic" style={{ direction: 'ltr', fontFamily: "'Playfair Display', serif" }} />
                     <input placeholder="كود الصنف (SKU)" value={prodForm.sku||''} onChange={e => setProdForm(p => ({ ...p, sku: e.target.value }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 font-mono" />
                     <select value={prodForm.category||''} onChange={e => setProdForm(p => ({ ...p, category: e.target.value }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 cursor-pointer"><option value="">التصنيف *</option>{ctx.categories.map(c => <option key={c.id} value={c.id}>{getCategoryLabel(c)}</option>)}</select>
                     <input type="number" placeholder="السعر (ر.س) *" value={prodForm.price||''} onChange={e => setProdForm(p => ({ ...p, price: parseFloat(e.target.value)||0 }))} className="p-2.5 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />

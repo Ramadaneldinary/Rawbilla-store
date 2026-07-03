@@ -243,7 +243,7 @@ export default function App() {
         <div className="relative flex items-center justify-center">
           <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
         </div>
-        <p className="text-xs font-bold text-slate-500 tracking-wide animate-pulse">جاري جلب إعدادات لوحة التحكم...</p>
+        <p className="text-xs font-bold text-slate-500 tracking-wide animate-pulse">... جاري جلب البيانات</p>
       </div>
     );
   }

@@ -43,28 +43,37 @@ function FeaturedCarousel({ items, categories: cats, title, subtitle, countLabel
   const scrollRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
 
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
-  const loopItems = useMemo(() => (isMobile ? items : [...items, ...items, ...items]), [items, isMobile]);
+  const loopItems = useMemo(() => {
+    if (items.length < 2) return items;
+    return [...items, ...items, ...items];
+  }, [items]);
 
   useEffect(() => {
-    if (isMobile) return;
     const el = scrollRef.current;
     if (!el || items.length < 2) return;
 
-    const cardW = 256 + 16; 
-    const setW = items.length * cardW;
-    el.scrollLeft = setW;
+    // Measure card width dynamically after render
+    const firstChild = el.firstElementChild as HTMLElement;
+    if (firstChild) {
+      const cardW = firstChild.getBoundingClientRect().width + 16; // gap-4 is 16px
+      el.scrollLeft = items.length * cardW;
+    }
 
     const interval = setInterval(() => {
       if (!pausedRef.current && el) {
-        el.scrollLeft += 1;
-        if (el.scrollLeft >= setW * 2) el.scrollLeft = setW;
-        if (el.scrollLeft <= 0) el.scrollLeft = setW;
+        const firstChild = el.firstElementChild as HTMLElement;
+        if (firstChild) {
+          const cardW = firstChild.getBoundingClientRect().width + 16;
+          const setW = items.length * cardW;
+          el.scrollLeft += 1;
+          if (el.scrollLeft >= setW * 2) el.scrollLeft = setW;
+          if (el.scrollLeft <= 0) el.scrollLeft = setW;
+        }
       }
     }, 20);
 
     return () => clearInterval(interval);
-  }, [items.length, isMobile]);
+  }, [items.length]);
 
   const pause = useCallback(() => { pausedRef.current = true; }, []);
   const resume = useCallback(() => { pausedRef.current = false; }, []);
@@ -151,7 +160,7 @@ function FeaturedCarousel({ items, categories: cats, title, subtitle, countLabel
 /* ═══ Main App Component ═══ */
 export default function App() {
   const ctx = useApp();
-  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems, loading } = ctx;
+  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems, loading, reorderMenuItems } = ctx;
   
   const activeDietaryFilters = useMemo(() => (settings?.dietaryFilters || []).filter(d => d.enabled), [settings?.dietaryFilters]);
   const featuredCfg = settings?.featured || { title: '', subtitle: '', enabled: true, itemIds: [], style: 'scroll' as const };
@@ -168,6 +177,47 @@ export default function App() {
   const [adminCode, setAdminCode] = useState('');
   const [loginError, setLoginError] = useState('');
   const [catAnim, setCatAnim] = useState<string | null>(null);
+  
+  // Drag and drop sorting states
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+
+  // Parse deep link query param to open product detail automatically
+  useEffect(() => {
+    if (menuItems.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const prodId = params.get('product');
+      if (prodId) {
+        const found = menuItems.find(item => item.id === prodId);
+        if (found) {
+          setDetailItem(found);
+        }
+      }
+    }
+  }, [menuItems]);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    if (!isAdmin || searchQuery) return;
+    setDraggedItemId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!isAdmin || searchQuery) return;
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    if (!isAdmin || searchQuery || !draggedItemId) return;
+    e.preventDefault();
+    if (draggedItemId !== targetId) {
+      reorderMenuItems(draggedItemId, targetId);
+    }
+    setDraggedItemId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItemId(null);
+  };
 
   // حماية صارمة لمنع الوميض: نتحقق هنا محلياً من وصول البيانات بشكل حقيقي وتخطي أي قيم كاش أو قيم افتراضية قديمة
   const [isReady, setIsReady] = useState(false);
@@ -239,11 +289,29 @@ export default function App() {
   // إخفاء المتجر بالكامل خلف شاشة التحميل لمنع الوميض نهائياً لحين جلب إعدادات لوحة التحكم
   if (!isReady) {
     return (
-      <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center gap-4">
-        <div className="relative flex items-center justify-center">
-          <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+      <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-50 via-white to-teal-50/20 flex flex-col items-center justify-center p-6 select-none animate-fadeIn">
+        <div className="flex flex-col items-center max-w-sm w-full gap-8">
+          {/* Logo container with pulse glow and diagonal sweeps */}
+          <div className="loader-logo-container loader-logo-shine relative p-4 flex items-center justify-center max-w-[280px]">
+            <img 
+              src="https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww" 
+              alt="Rawbilla Logo" 
+              className="w-full h-auto object-contain drop-shadow-md rounded-2xl"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          
+          {/* Premium loading text and dynamic progress bar */}
+          <div className="w-48 flex flex-col items-center gap-3">
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/40">
+              <div className="h-full bg-gradient-to-r from-teal-400 via-cyan-500 to-teal-500 rounded-full loader-progress-bar" />
+            </div>
+            <p className="text-[11px] font-bold text-slate-400 tracking-wider font-ar animate-pulse mt-0.5">
+              ... جاري تهيئة متجر روبيلا
+            </p>
+          </div>
         </div>
-        <p className="text-xs font-bold text-slate-500 tracking-wide animate-pulse">... جاري جلب البيانات</p>
       </div>
     );
   }
@@ -338,7 +406,7 @@ export default function App() {
               </div>
             </div>
             {settings.salesRep.phone && (
-              <ContactButton phone={settings.salesRep.phone} label="تواصل معي" size="sm" texts={{ title: T.contactTitle, whatsapp: T.contactWhatsApp, whatsappHint: T.contactWhatsAppHint, call: T.contactCall, callHint: T.contactCallHint }} showDesignRequest />
+              <ContactButton phone={settings.salesRep.phone} label="تواصل معي" size="sm" align="right" texts={{ title: T.contactTitle, whatsapp: T.contactWhatsApp, whatsappHint: T.contactWhatsAppHint, call: T.contactCall, callHint: T.contactCallHint }} showDesignRequest />
             )}
           </div>
         </div>
@@ -438,7 +506,21 @@ export default function App() {
             {filteredItems.length === 0 ? (
               <div className="text-center py-12 px-6 bg-white border border-slate-100 rounded-3xl"><span className="text-4xl">🥘</span><h3 className="text-base font-bold text-slate-800 mt-2">لا توجد نتائج</h3><p className="text-xs text-slate-400 mt-1">جرّب تغيير الفلاتر أو كلمات البحث</p></div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 stagger-grid">{filteredItems.map(item => <MenuCard key={item.id} item={item} onSelect={handleSelectItem} onViewDetail={handleViewDetail} />)}</div>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 stagger-grid">
+                {filteredItems.map(item => (
+                  <MenuCard 
+                    key={item.id} 
+                    item={item} 
+                    onSelect={handleSelectItem} 
+                    onViewDetail={handleViewDetail} 
+                    isAdmin={isAdmin && !searchQuery}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -482,9 +564,9 @@ export default function App() {
       {showAdminPanel && isAdmin && <AdminPanel onClose={() => setShowAdminPanel(false)} />}
 
       {/* الفوتر */}
-      <footer className={`relative border-t border-amber-200/30 overflow-hidden ${settings?.footerBgEnabled === false ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100' : ''}`}>
+      <footer className={`relative border-t border-amber-200/30 overflow-visible ${settings?.footerBgEnabled === false ? 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100' : ''}`}>
         {settings?.footerBgEnabled !== false && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {settings?.footerBgUrl ? (
               <img src={cvtUrl(settings.footerBgUrl)} alt="" className="w-full h-full object-cover" crossOrigin="anonymous" referrerPolicy="no-referrer" />
             ) : settings?.contentBgUrl ? (
@@ -514,7 +596,7 @@ export default function App() {
               <span className="text-[9px] px-2.5 py-1 bg-white/60 rounded-full border border-amber-200/50 font-bold text-amber-800 shadow-sm">{T.footerBadge3 || 'ضمان الجودة'}</span>
             </div>
           </div>
-          <ContactButton phone={settings?.whatsappNumber} label={T.footerContactBtn || 'تواصل معنا'} size="md"
+          <ContactButton phone={settings?.whatsappNumber} label={T.footerContactBtn || 'تواصل معنا'} size="md" align="right"
             texts={{ title: T.contactTitle, whatsapp: T.contactWhatsApp, whatsappHint: T.contactWhatsAppHint, call: T.contactCall, callHint: T.contactCallHint }}
             showDesignRequest
           />

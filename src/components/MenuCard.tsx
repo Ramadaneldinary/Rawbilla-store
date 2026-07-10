@@ -19,9 +19,23 @@ interface MenuCardProps {
   item: MenuItem;
   onSelect: (item: MenuItem) => void;
   onViewDetail: (item: MenuItem) => void;
+  isAdmin?: boolean;
+  onDragStart?: (e: React.DragEvent, id: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent, id: string) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }
 
-export function MenuCard({ item, onSelect, onViewDetail }: MenuCardProps) {
+export function MenuCard({ 
+  item, 
+  onSelect, 
+  onViewDetail,
+  isAdmin = false,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd
+}: MenuCardProps) {
   const { settings } = useApp();
   const dietaryFilters = (settings.dietaryFilters || []).filter(d => d.enabled);
   const imgs = (item.images || []).map(convertUrl).filter(Boolean);
@@ -43,7 +57,16 @@ export function MenuCard({ item, onSelect, onViewDetail }: MenuCardProps) {
   };
 
   return (
-    <div className={`animate-cardIn flex flex-col h-full bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 relative group ${isOOS ? 'opacity-75' : ''}`}>
+    <div 
+      draggable={isAdmin}
+      onDragStart={isAdmin && onDragStart ? (e) => onDragStart(e, item.id) : undefined}
+      onDragOver={isAdmin && onDragOver ? onDragOver : undefined}
+      onDrop={isAdmin && onDrop ? (e) => onDrop(e, item.id) : undefined}
+      onDragEnd={isAdmin && onDragEnd ? onDragEnd : undefined}
+      className={`animate-cardIn flex flex-col h-full bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 relative group ${isOOS ? 'opacity-75' : ''} ${
+        isAdmin ? 'cursor-move ring-1 ring-amber-200/50 border-amber-300/40 hover:scale-[1.01] hover:ring-2 hover:ring-amber-400/80 transition-all duration-300' : ''
+      }`}
+    >
       {/* Badges */}
       <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
         {isOOS && <span className="px-2.5 py-1 bg-red-600 text-white text-[9px] font-extrabold rounded-full shadow-lg">نفذ المخزون</span>}

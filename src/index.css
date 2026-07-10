@@ -128,3 +128,82 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 .cart-item-enter { animation: cartItemIn 0.4s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+
+/* Loading screen custom premium animations */
+@keyframes logoPulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(20, 184, 166, 0.15));
+  }
+  50% {
+    transform: scale(1.04);
+    filter: drop-shadow(0 0 35px rgba(20, 184, 166, 0.35)) drop-shadow(0 0 10px rgba(6, 182, 212, 0.15));
+  }
+}
+
+@keyframes logoLoadingSweep {
+  0% {
+    left: -150%;
+  }
+  50% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.loader-logo-container {
+  animation: logoPulseGlow 3s ease-in-out infinite;
+}
+
+.loader-logo-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.loader-logo-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    transparent 70%
+  );
+  transform: rotate(30deg);
+  animation: logoLoadingSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes loaderProgress {
+  0% {
+    width: 0%;
+  }
+  20% {
+    width: 25%;
+  }
+  40% {
+    width: 45%;
+  }
+  60% {
+    width: 75%;
+  }
+  80% {
+    width: 90%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.loader-progress-bar {
+  animation: loaderProgress 4.5s cubic-bezier(0.1, 0.8, 0.1, 1) infinite;
+}
+

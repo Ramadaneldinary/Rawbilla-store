@@ -24,8 +24,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
   const subtotal = cart.reduce((t, ci) => {
     return t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity;
   }, 0);
-  const { discountPercent, discountAmount } = discountResult;
-  const afterDiscount = subtotal - discountAmount;
+  const { discountPercent, discountAmount, cartonFreeCount, cartonDiscountAmount, cartonItemName } = discountResult;
+  const afterDiscount = Math.max(0, subtotal - discountAmount - cartonDiscountAmount);
   const isFreeDelivery = afterDiscount >= FREE_DELIVERY_MIN;
   const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : DELIVERY_FEE) : 0;
   const remainingForFree = Math.max(0, FREE_DELIVERY_MIN - afterDiscount);
@@ -128,6 +128,7 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
           {deliveryMethod === 'delivery' && <input value={address} onChange={e => setAddress(e.target.value)} placeholder="عنوان التوصيل *" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />}
           <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1.5 text-xs font-medium text-slate-500">
             <div className="flex justify-between"><span>{T.cartSubtotal || 'المجموع'}</span><span className="font-bold text-slate-700">{subtotal.toFixed(2)} ر.س</span></div>
+            {cartonDiscountAmount > 0 && <div className="flex justify-between text-purple-600 bg-purple-50 rounded-lg px-2 py-1 border border-purple-100"><span className="font-bold">🎁 العرض الخاص: {cartonItemName} (مجاني) × {cartonFreeCount}</span><span className="font-black">-{cartonDiscountAmount.toFixed(2)} ر.س</span></div>}
             {discountPercent > 0 && <div className="flex justify-between text-green-600"><span className="font-bold">🎁 خصم {discountPercent}%</span><span className="font-black">-{discountAmount.toFixed(2)} ر.س</span></div>}
             <div className="flex justify-between"><span>{T.cartTax || 'الضريبة (15%)'}</span><span className="font-bold text-slate-700">{tax.toFixed(2)} ر.س</span></div>
             {deliveryMethod === 'delivery' && <div className="flex justify-between"><span>التوصيل</span>{isFreeDelivery ? <span className="font-black text-green-600">مجاني</span> : <span className="font-bold text-slate-700">{DELIVERY_FEE} ر.س</span>}</div>}
@@ -168,6 +169,55 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
         className="p-3 space-y-2"
       >
         <DiscountProgressBar />
+
+        {/* Carton Special Offer Progress / Alert */}
+        {ctx.settings.featured.cartonOfferEnabled && ctx.settings.featured.cartonItemId && ctx.settings.featured.cartonBuyQty && ctx.settings.featured.cartonBuyQty > 0 && (() => {
+          const buyQty = ctx.settings.featured.cartonBuyQty;
+          const freeQty = ctx.settings.featured.cartonFreeQty || 1;
+          const targetItem = ctx.menuItems.find(m => m.id === ctx.settings.featured.cartonItemId);
+          if (!targetItem) return null;
+          
+          const cartItem = cart.find(ci => ci.menuItem.id === targetItem.id);
+          const currentQty = cartItem ? cartItem.quantity : 0;
+          const remaining = Math.max(0, buyQty - (currentQty % buyQty));
+          const earnedCount = Math.floor(currentQty / buyQty) * freeQty;
+          
+          if (currentQty === 0) {
+            return (
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/60 rounded-2xl p-3 flex flex-col gap-1.5">
+                <p className="text-[10px] text-purple-800 font-extrabold font-ar">
+                  🔥 عرض خاص: اشترِ {buyQty} كرتون من {targetItem.name} واحصل على {freeQty} كرتون مجاناً!
+                </p>
+              </div>
+            );
+          } else if (remaining > 0) {
+            const progress = ((currentQty % buyQty) / buyQty) * 100;
+            return (
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/60 rounded-2xl p-3 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between text-[10px] font-bold text-purple-800 font-ar">
+                  <span>العرض الخاص: {targetItem.name}</span>
+                  <span>باقي {remaining} كرتون للحصول على الهدية!</span>
+                </div>
+                <div className="h-1.5 bg-purple-200/40 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                </div>
+                {earnedCount > 0 && (
+                  <p className="text-[9px] text-green-600 font-bold font-ar">
+                    🎉 لقد حصلت بالفعل على {earnedCount} كرتون مجاناً!
+                  </p>
+                )}
+              </div>
+            );
+          } else {
+            return (
+              <div className="bg-gradient-to-r from-green-50 to-purple-50 border border-green-200/50 rounded-2xl p-3 text-center">
+                <p className="text-[10px] text-green-700 font-black font-ar">
+                  🎉 مبروك! حصلت على {earnedCount} كرتون مجاناً من {targetItem.name}!
+                </p>
+              </div>
+            );
+          }
+        })()}
 
         {/* Free Delivery */}
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200/60 rounded-2xl p-3">
@@ -230,6 +280,7 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 }} className="p-3 bg-white border-t border-slate-200 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <div className="space-y-1 text-xs font-medium text-slate-500 mb-2">
           <div className="flex justify-between"><span>{T.cartSubtotal || 'المجموع'}</span><span className="font-bold text-slate-700">{subtotal.toFixed(2)} ر.س</span></div>
+          {cartonDiscountAmount > 0 && <div className="flex justify-between text-purple-600 bg-purple-50 rounded-lg px-2 py-1 border border-purple-100"><span className="font-bold">🎁 العرض الخاص: {cartonItemName} (مجاني) × {cartonFreeCount}</span><span className="font-black">-{cartonDiscountAmount.toFixed(2)} ر.س</span></div>}
           {discountPercent > 0 && <div className="flex justify-between text-green-600 bg-green-50 rounded-lg px-2 py-1 border border-green-100"><span className="font-bold">🎁 خصم {discountPercent}%</span><span className="font-black">-{discountAmount.toFixed(2)} ر.س</span></div>}
           <div className="flex justify-between"><span>{T.cartTax || 'الضريبة (15%)'}</span><span className="font-bold text-slate-700">{tax.toFixed(2)} ر.س</span></div>
           <div className="flex justify-between text-sm font-black text-slate-800 pt-1.5 border-t border-slate-100 mt-1">

@@ -8,9 +8,10 @@ interface Props {
   texts?: { title?: string; whatsapp?: string; whatsappHint?: string; call?: string; callHint?: string };
   showDesignRequest?: boolean;
   designPhone?: string;
+  align?: 'left' | 'right' | 'center';
 }
 
-export function ContactButton({ phone, label = 'تواصل معنا', size = 'md', texts, showDesignRequest, designPhone }: Props) {
+export function ContactButton({ phone, label = 'تواصل معنا', size = 'md', texts, showDesignRequest, designPhone, align = 'center' }: Props) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<'up' | 'down'>('up');
@@ -49,12 +50,16 @@ export function ContactButton({ phone, label = 'تواصل معنا', size = 'md
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
           <div
-            className={`absolute z-[101] animate-scaleIn ${isSm ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}
+            className={`absolute z-[101] animate-scaleIn ${
+              align === 'right' ? 'right-0' : align === 'left' ? 'left-0' : 'left-1/2 -translate-x-1/2'
+            }`}
             style={pos === 'up' ? { bottom: '100%', marginBottom: 8 } : { top: '100%', marginTop: 8 }}>
 
             {/* Arrow pointing to button */}
-            <div className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-slate-200 rotate-45 ${
+            <div className={`absolute w-3 h-3 bg-white border-slate-200 rotate-45 ${
               pos === 'up' ? 'bottom-[-6px] border-b border-r' : 'top-[-6px] border-t border-l'
+            } ${
+              align === 'right' ? 'right-6' : align === 'left' ? 'left-6' : 'left-1/2 -translate-x-1/2'
             }`} style={{ zIndex: 1 }} />
 
             <div className="w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative" style={{ zIndex: 2 }}>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp, DiscountTier, FeaturedConfig, DEFAULT_TEXTS } from '../store/AppContext';
 import { MenuItem, Category, DietaryFilter, COLOR_PRESETS } from '../data/menuData';
 import { getCategoryLabel } from './CategoryIcon';
-import { X, Plus, Pencil, Trash2, Save, Upload, LogOut, Settings, Package, Tag, Image, Gift, SlidersHorizontal, Eye, EyeOff, ToggleLeft, ToggleRight, Star, ArrowUp, ArrowDown, LayoutGrid, GripHorizontal, Type, Download, FileUp, FileDown, AlertTriangle, CheckCircle, FileSpreadsheet, Zap } from 'lucide-react';
+import { X, Plus, Pencil, Trash2, Save, Upload, LogOut, Settings, Package, Tag, Image, Gift, SlidersHorizontal, Eye, EyeOff, ToggleLeft, ToggleRight, Star, ArrowUp, ArrowDown, LayoutGrid, GripHorizontal, Type, Download, FileUp, FileDown, AlertTriangle, CheckCircle, FileSpreadsheet, Zap, Sparkles } from 'lucide-react';
 import { exportToExcel, importFromExcel } from '../utils/excel';
 
 const COLOR_OPTIONS = ['from-amber-100 to-orange-100','from-emerald-50 to-teal-50','from-rose-50 to-orange-50','from-amber-50 to-yellow-50','from-emerald-50 to-green-100','from-green-50 to-emerald-50','from-red-50 to-orange-50','from-stone-100 to-amber-50','from-orange-50 to-amber-100','from-teal-50 to-emerald-50','from-cyan-50 to-blue-50','from-pink-50 to-rose-50','from-stone-200 to-amber-50','from-amber-50 to-stone-50','from-amber-50 to-stone-100'];
@@ -954,6 +954,94 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
               <div className="flex items-center justify-between bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4">
                 <div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center text-white shadow-md"><Gift className="w-5 h-5" /></div><div><h3 className="text-sm font-black text-slate-800">خصم الكمية</h3></div></div>
                 <button onClick={() => ctx.updateSettings({ discountEnabled: !ctx.settings.discountEnabled })} className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.discountEnabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}><div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${ctx.settings.discountEnabled ? 'right-1' : 'left-1'}`} /></button>
+              </div>
+
+              {/* Carton special offer card (Buy X Get Y Free) */}
+              <div className="bg-gradient-to-br from-purple-50 via-indigo-50/50 to-purple-50/60 border border-purple-200 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800 font-ar">عرض التسويق الخاص (اشترِ X واحصل على Y مجاناً)</h3>
+                      <p className="text-[10px] text-purple-700 font-bold mt-0.5 font-ar">عرض ترويجي لزيادة المبيعات على منتج محدد</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => ctx.updateSettings({ 
+                      featured: { 
+                        ...ctx.settings.featured, 
+                        cartonOfferEnabled: !ctx.settings.featured.cartonOfferEnabled 
+                      } 
+                    })} 
+                    className={`w-14 h-7 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.featured.cartonOfferEnabled ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-slate-300'}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full shadow-md absolute top-1 transition-all duration-300 ${ctx.settings.featured.cartonOfferEnabled ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                {ctx.settings.featured.cartonOfferEnabled && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="sm:col-span-3">
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1 font-ar">اختر الصنف المستهدف بالعرض *</label>
+                      <select 
+                        value={ctx.settings.featured.cartonItemId || ''} 
+                        onChange={e => ctx.updateSettings({ 
+                          featured: { 
+                            ...ctx.settings.featured, 
+                            cartonItemId: e.target.value 
+                          } 
+                        })} 
+                        className="w-full p-2.5 border border-purple-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500 cursor-pointer font-ar"
+                      >
+                        <option value="">-- اختر منتجاً --</option>
+                        {ctx.menuItems.map(item => (
+                          <option key={item.id} value={item.id}>
+                            {item.name} ({item.price} ر.س)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1 font-ar">كمية الطلب الأساسية (مثال: 20)</label>
+                      <input 
+                        type="number" 
+                        min={1} 
+                        value={ctx.settings.featured.cartonBuyQty || ''} 
+                        onChange={e => ctx.updateSettings({ 
+                          featured: { 
+                            ...ctx.settings.featured, 
+                            cartonBuyQty: parseInt(e.target.value) || 0 
+                          } 
+                        })} 
+                        placeholder="الكمية المطلوبة" 
+                        className="w-full p-2.5 border border-purple-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1 font-ar">الكمية المجانية الممنوحة (مثال: 1)</label>
+                      <input 
+                        type="number" 
+                        min={1} 
+                        value={ctx.settings.featured.cartonFreeQty || ''} 
+                        onChange={e => ctx.updateSettings({ 
+                          featured: { 
+                            ...ctx.settings.featured, 
+                            cartonFreeQty: parseInt(e.target.value) || 0 
+                          } 
+                        })} 
+                        placeholder="الكمية المجانية" 
+                        className="w-full p-2.5 border border-purple-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" 
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <div className="bg-purple-100/70 border border-purple-200/50 rounded-xl p-2.5 w-full text-center text-[10px] font-bold text-purple-800 font-ar">
+                        عرض: اشترِ {ctx.settings.featured.cartonBuyQty || 0} كرتون واحصل على {ctx.settings.featured.cartonFreeQty || 0} مجاناً!
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between items-center"><h3 className="text-sm font-bold text-slate-700">المستويات ({sortedTiers.length})</h3><button onClick={() => { resetTierForm(); setTierForm({ visible: true }); setShowTierForm(true); }} className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl cursor-pointer transition"><Plus className="w-3.5 h-3.5" /> إضافة</button></div>
               {showTierForm && (

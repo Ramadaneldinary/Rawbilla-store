@@ -38,6 +38,12 @@ export interface FeaturedConfig {
   enabled: boolean;
   itemIds: string[];       // ordered list of featured item IDs
   style: 'scroll' | 'grid';
+  // Carton Special Offer
+  cartonOfferEnabled?: boolean;
+  cartonItemId?: string;
+  cartonBuyQty?: number;
+  cartonFreeQty?: number;
+  itemOrder?: string[];
 }
 
 const DEFAULT_FEATURED: FeaturedConfig = {
@@ -46,6 +52,11 @@ const DEFAULT_FEATURED: FeaturedConfig = {
   enabled: true,
   itemIds: [],  // empty = use item.featured flag as fallback
   style: 'scroll',
+  cartonOfferEnabled: false,
+  cartonItemId: '',
+  cartonBuyQty: 20,
+  cartonFreeQty: 1,
+  itemOrder: []
 };
 
 /* ───── Customizable Texts ───── */
@@ -89,6 +100,8 @@ export interface CustomTexts {
 }
 
 const DEFAULT_TEXTS: CustomTexts = {
+  heroTitle: 'اطلب حلوياتك المفضلة الآن',
+  menuTitle: 'قائمة الطعام',
   heroSubtitle: 'اختر من تشكيلتنا الفاخرة، خصّص طلبك، وأرسله مباشرة عبر واتساب',
   searchPlaceholder: 'ابحث عن أصناف أو تصنيفات...',
   categoriesLabel: 'التصنيفات',
@@ -174,6 +187,9 @@ export interface DiscountResult {
   discountAmount: number;
   progressToNext: number;
   itemsToNextTier: number;
+  cartonFreeCount: number;
+  cartonDiscountAmount: number;
+  cartonItemName?: string;
 }
 
 /* ───── Context Type ───── */
@@ -211,6 +227,7 @@ interface AppState {
 
   discountResult: DiscountResult;
   sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string) => void;
+  reorderMenuItems: (draggedId: string, targetId: string) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -286,7 +303,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         if (!itemsRes.error && itemsRes.data) {
           if (itemsRes.data.length > 0) {
-            setMenuItems(itemsRes.data.map(item => ({
+            const loadedItems = itemsRes.data.map(item => ({
               id: item.id,
               name: item.name,
               nameEn: item.name_en,
@@ -313,7 +330,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
               sku: item.sku,
               orderCount: item.order_count || 0,
               hidden: item.hidden || false
-            })));
+            }));
+
+            // Sort items by custom order if it exists
+            const itemOrder = settingsRes.data?.featured?.itemOrder || [];
+            if (itemOrder.length > 0) {
+              const orderMap = new Map(itemOrder.map((id, index) => [id, index]));
+              loadedItems.sort((a, b) => {
+                const aIndex = orderMap.has(a.id) ? orderMap.get(a.id)! : 9999;
+                const bIndex = orderMap.has(b.id) ? orderMap.get(b.id)! : 9999;
+                return aIndex - bIndex;
+              });
+            }
+            setMenuItems(loadedItems);
           } else {
             // Seed defaults since table is empty
             const { error } = await supabase.from('menu_items').insert(DEFAULT_MENU_ITEMS.map(item => ({
@@ -345,6 +374,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
               hidden: item.hidden || false
             })));
             if (error) console.error("Error seeding menu items:", error);
+            
+            // Re-fetch since it's freshly seeded
+            const secondFetch = await supabase.from('menu_items').select('*');
+            if (!secondFetch.error && secondFetch.data) {
+              setMenuItems(secondFetch.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                nameEn: item.name_en,
+                category: item.category,
+                price: Number(item.price),
+                description: item.description || '',
+                dietary: item.dietary || [],
+                calories: item.calories || 0,
+                imageEmoji: item.image_emoji || '',
+                images: item.images || [],
+                colorClass: item.color_class || '',
+                optionGroups: item.option_groups || [],
+                featured: item.featured || false,
+                discount: item.discount ? Number(item.discount) : undefined,
+                badge: item.badge,
+                prepTime: item.prep_time,
+                qualityLabel: item.quality_label,
+                showCalories: item.show_calories !== false,
+                showPrepTime: item.show_prep_time !== false,
+                showQuality: item.show_quality !== false,
+                unit: item.unit,
+                packaging: item.packaging,
+                outOfStock: item.out_of_stock || false,
+                sku: item.sku,
+                orderCount: item.order_count || 0,
+                hidden: item.hidden || false
+              })));
+            }
           }
         }
 
@@ -357,7 +419,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
               discountTiers: storeSettings.discount_tiers || DEFAULT_DISCOUNT_TIERS,
               discountEnabled: storeSettings.discount_enabled !== false,
               dietaryFilters: storeSettings.dietary_filters || DEFAULT_DIETARY_FILTERS,
-              featured: storeSettings.featured || DEFAULT_FEATURED,
+              featured: {
+                ...DEFAULT_FEATURED,
+                ...(storeSettings.featured || {}),
+                cartonOfferEnabled: storeSettings.featured?.cartonOfferEnabled || false,
+                cartonItemId: storeSettings.featured?.cartonItemId || '',
+                cartonBuyQty: storeSettings.featured?.cartonBuyQty || 20,
+                cartonFreeQty: storeSettings.featured?.cartonFreeQty || 1,
+                itemOrder: storeSettings.featured?.itemOrder || []
+              },
               texts: storeSettings.texts || DEFAULT_TEXTS,
               salesRep: storeSettings.sales_rep || { enabled: false, name: '', title: '', phone: '', photoUrl: '' },
               heroBgUrl: storeSettings.hero_bg_url || '',
@@ -661,6 +731,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const totalItems = cart.reduce((s, ci) => s + ci.quantity, 0);
     const subtotalRaw = cart.reduce((t, ci) => t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity, 0);
 
+    // Calculate carton offer discount
+    let cartonFreeCount = 0;
+    let cartonDiscountAmount = 0;
+    let cartonItemName = '';
+    
+    const cartonCfg = settings.featured;
+    if (cartonCfg?.cartonOfferEnabled && cartonCfg?.cartonItemId && cartonCfg?.cartonBuyQty && cartonCfg.cartonBuyQty > 0) {
+      const targetItem = cart.find(ci => ci.menuItem.id === cartonCfg.cartonItemId);
+      if (targetItem) {
+        cartonFreeCount = Math.floor(targetItem.quantity / cartonCfg.cartonBuyQty) * (cartonCfg.cartonFreeQty || 1);
+        cartonDiscountAmount = cartonFreeCount * calcUnitPrice(targetItem.menuItem.price, targetItem.selectedOptions);
+        cartonItemName = targetItem.menuItem.name;
+      }
+    }
+
+    const subtotalAfterCarton = Math.max(0, subtotalRaw - cartonDiscountAmount);
+
     // Only use ENABLED tiers (not hidden ones for calculation — hidden means hidden from UI only)
     // But EACH tier only checks its OWN type (items or value) — never cross-check
     const allTiers = [...(settings.discountTiers || [])].sort((a, b) => {
@@ -670,7 +757,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     if (!settings.discountEnabled || allTiers.length === 0) {
-      return { totalItems, currentTier: null, nextTier: allTiers[0] || null, discountPercent: 0, discountAmount: 0, progressToNext: 0, itemsToNextTier: allTiers[0]?.minItems || 0 };
+      return { 
+        totalItems, 
+        currentTier: null, 
+        nextTier: allTiers[0] || null, 
+        discountPercent: 0, 
+        discountAmount: 0, 
+        progressToNext: 0, 
+        itemsToNextTier: allTiers[0]?.minItems || 0,
+        cartonFreeCount,
+        cartonDiscountAmount,
+        cartonItemName
+      };
     }
 
     // Find best matching tier — only match tiers of matching type
@@ -681,7 +779,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const tier = allTiers[i];
       let met = false;
       if (tier.discountType === 'value') {
-        met = subtotalRaw >= (tier.minValue || 0);
+        met = subtotalAfterCarton >= (tier.minValue || 0);
       } else {
         // items type — only check items, never value
         met = totalItems >= tier.minItems;
@@ -704,13 +802,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const discountPercent = currentTier?.discountPercent || 0;
-    const subtotal = subtotalRaw;
-    const discountAmount = subtotal * (discountPercent / 100);
+    const discountAmount = subtotalAfterCarton * (discountPercent / 100);
     let progressToNext = 0, itemsToNextTier = 0;
-    if (nextTier) { const prevMin = currentTier?.minItems || 0; progressToNext = Math.min(100, Math.max(0, ((totalItems - prevMin) / (nextTier.minItems - prevMin)) * 100)); itemsToNextTier = nextTier.minItems - totalItems; }
-    else if (currentTier) { progressToNext = 100; }
-    return { totalItems, currentTier, nextTier, discountPercent, discountAmount, progressToNext, itemsToNextTier };
-  }, [cart, settings.discountTiers, settings.discountEnabled]);
+    if (nextTier) { 
+      const prevMin = currentTier?.minItems || 0; 
+      progressToNext = Math.min(100, Math.max(0, ((totalItems - prevMin) / (nextTier.minItems - prevMin)) * 100)); 
+      itemsToNextTier = nextTier.minItems - totalItems; 
+    }
+    else if (currentTier) { 
+      progressToNext = 100; 
+    }
+    return { 
+      totalItems, 
+      currentTier, 
+      nextTier, 
+      discountPercent, 
+      discountAmount, 
+      progressToNext, 
+      itemsToNextTier,
+      cartonFreeCount,
+      cartonDiscountAmount,
+      cartonItemName
+    };
+  }, [cart, settings.discountTiers, settings.discountEnabled, settings.featured]);
 
   /* WhatsApp */
   const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
@@ -744,12 +858,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (ci.notes) msg += `    ملاحظة: ${ci.notes}\n`;
       msg += `\n`;
     });
-    const { discountPercent, discountAmount } = discountResult;
-    const afterDiscount = subtotal - discountAmount; const tax = afterDiscount * 0.15;
+    const { discountPercent, discountAmount, cartonFreeCount, cartonDiscountAmount, cartonItemName } = discountResult;
+    
+    if (cartonFreeCount > 0 && cartonItemName) {
+      msg += `🎁 *هدية العرض الخاص:*\n`;
+      msg += `    *${cartonItemName} - مجاني* × ${cartonFreeCount}\n`;
+      msg += `    *الاجمالي: 0.00 ر.س*\n\n`;
+    }
+
+    const afterDiscount = Math.max(0, subtotal - discountAmount - cartonDiscountAmount); 
+    const tax = afterDiscount * 0.15;
     const isFreeDelivery = afterDiscount >= 200;
     const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : 15) : 0;
     msg += `--------------------------------\n`;
     msg += `المجموع الفرعي: ${subtotal.toFixed(2)} ر.س\n`;
+    if (cartonDiscountAmount > 0) msg += `خصم العرض الخاص: -${cartonDiscountAmount.toFixed(2)} ر.س\n`;
     if (discountPercent > 0) msg += `خصم الكمية (${discountPercent}%): -${discountAmount.toFixed(2)} ر.س\n`;
     msg += `الضريبة (15%): ${tax.toFixed(2)} ر.س\n`;
     if (deliveryFee > 0) msg += `رسوم التوصيل: ${deliveryFee.toFixed(2)} ر.س\n`;
@@ -760,13 +883,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const reorderMenuItems = (draggedId: string, targetId: string) => {
+    setMenuItems(prev => {
+      const list = [...prev];
+      const draggedIdx = list.findIndex(m => m.id === draggedId);
+      const targetIdx = list.findIndex(m => m.id === targetId);
+      if (draggedIdx === -1 || targetIdx === -1) return prev;
+
+      const [draggedItem] = list.splice(draggedIdx, 1);
+      const newTargetIdx = list.findIndex(m => m.id === targetId);
+      list.splice(newTargetIdx, 0, draggedItem);
+
+      const newOrderIds = list.map(m => m.id);
+      const updatedFeatured = {
+        ...settings.featured,
+        itemOrder: newOrderIds
+      };
+
+      updateSettings({ featured: updatedFeatured });
+      return list;
+    });
+  };
+
   return (
     <AppContext.Provider value={{
       isAdmin, login, logout,
       categories, addCategory, updateCategory, deleteCategory, replaceCategories,
       menuItems, addMenuItem, updateMenuItem, deleteMenuItem, replaceMenuItems,
       cart, addToCart, updateCartQuantity, removeFromCart, updateCartNotes, clearCart,
-      settings, updateSettings, featuredItems, discountResult, sendWhatsAppOrder
+      settings, updateSettings, featuredItems, discountResult, sendWhatsAppOrder,
+      reorderMenuItems
     }}>{children}</AppContext.Provider>
   );
 }

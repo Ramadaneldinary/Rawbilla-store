@@ -20,6 +20,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [childDob, setChildDob] = useState('');
+  const [childName, setChildName] = useState('');
+  const [childGender, setChildGender] = useState('');
 
   const dobParts = childDob.split('-');
   const dobYear = dobParts[0] || '';
@@ -52,8 +54,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
     if (!name.trim() || !phone.trim()) return;
     if (deliveryMethod === 'delivery' && !address.trim()) return;
     // Save customer data + order
-    saveCustomerOrder(phone, name, address, cart, total, childDob);
-    ctx.sendWhatsAppOrder(deliveryMethod, name, phone, address, childDob);
+    saveCustomerOrder(phone, name, address, cart, total, childDob, childName, childGender);
+    ctx.sendWhatsAppOrder(deliveryMethod, name, phone, address, childDob, childName, childGender);
     ctx.clearCart();
     setShowCheckout(false);
     onClose();
@@ -70,6 +72,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
         if (customer.name && !name) setName(customer.name);
         if (customer.address && !address) setAddress(customer.address);
         if (customer.childDob && !childDob) setChildDob(customer.childDob);
+        if (customer.childName && !childName) setChildName(customer.childName);
+        if (customer.childGender && !childGender) setChildGender(customer.childGender);
         setReorderMsg(`عميل سابق — ${customer.orders.length} طلب`);
       }
     }
@@ -139,8 +143,18 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
             )}
           </div>
           {ctx.settings.childDobField?.enabled !== false && (
-            <div>
-              <label className="text-[10px] text-indigo-600 font-bold block mb-1 pr-1">{ctx.settings.childDobField?.label || '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)'}</label>
+            <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 space-y-2">
+              <label className="text-[10px] text-indigo-700 font-bold block pr-1">{ctx.settings.childDobField?.label || '👶 بيانات أول فرحة (اختياري)'}</label>
+              
+              <div className="flex gap-2">
+                <input value={childName} onChange={e => setChildName(e.target.value)} placeholder="اسم الطفل" className="w-1/2 p-2.5 border border-indigo-200 rounded-xl text-sm bg-white focus:outline-none focus:border-indigo-400 text-slate-700" />
+                <select value={childGender} onChange={e => setChildGender(e.target.value)} className="w-1/2 p-2.5 border border-indigo-200 rounded-xl text-sm bg-white focus:outline-none focus:border-indigo-400 text-slate-700 cursor-pointer">
+                  <option value="">النوع</option>
+                  <option value="boy">ولد 👦</option>
+                  <option value="girl">بنت 👧</option>
+                </select>
+              </div>
+
               <div className="flex gap-2">
                 <select value={dobDay} onChange={e => updateDob(dobYear, dobMonth, e.target.value)} className="w-1/3 p-2.5 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 cursor-pointer">
                   <option value="">اليوم</option>

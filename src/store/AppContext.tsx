@@ -228,7 +228,7 @@ interface AppState {
   featuredItems: MenuItem[];
 
   discountResult: DiscountResult;
-  sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string) => void;
+  sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string, childName?: string, childGender?: string) => void;
   reorderMenuItems: (draggedId: string, targetId: string) => void;
   reorderCategories: (draggedId: string, targetId: string) => void;
   loading: boolean;
@@ -844,12 +844,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [cart, settings.discountTiers, settings.discountEnabled, settings.featured]);
 
   /* WhatsApp */
-  const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string) => {
+  const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string, childName?: string, childGender?: string) => {
     let msg = `*طلب جديد - RAWBILLA*\n`;
     msg += `--------------------------------\n`;
     msg += `الاسم: *${name}*\n`;
     msg += `الهاتف: *${phone}*\n`;
-    if (childDob) msg += `تاريخ ميلاد أول فرحة: *${childDob}* 👶\n`;
+    if (childDob || childName || childGender) {
+      msg += `👶 *معلومات أول فرحة:*\n`;
+      if (childName) msg += `   - الاسم: *${childName}*\n`;
+      if (childGender) msg += `   - النوع: *${childGender === 'boy' ? 'ولد' : childGender === 'girl' ? 'بنت' : childGender}*\n`;
+      if (childDob) msg += `   - تاريخ الميلاد: *${childDob}*\n`;
+    }
     msg += `نوع الطلب: *${deliveryMethod === 'delivery' ? 'توصيل' : 'استلام'}*\n`;
     if (deliveryMethod === 'delivery' && address) msg += `العنوان: *${address}*\n`;
     msg += `--------------------------------\n`;

@@ -174,6 +174,7 @@ export interface StoreSettings {
 
   // Smart Recommendations
   recommendations: { enabled: boolean; title: string };
+  freeDeliveryThreshold: number;
 }
 
 export { DEFAULT_TEXTS };
@@ -228,6 +229,8 @@ interface AppState {
   discountResult: DiscountResult;
   sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string) => void;
   reorderMenuItems: (draggedId: string, targetId: string) => void;
+  reorderCategories: (draggedId: string, targetId: string) => void;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -235,6 +238,7 @@ const ADMIN_CODE = 'MOD13';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(DEFAULT_MENU_ITEMS);
   const [settings, setSettings] = useState<StoreSettings>({
@@ -258,6 +262,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     brandFont: '',
     flashDeals: { enabled: false, items: [] },
     recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
+    freeDeliveryThreshold: 200,
   });
   const [cart, setCart] = useState<CartItem[]>([]);
 
@@ -444,6 +449,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               brandFont: storeSettings.brand_font || '',
               flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
               recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
+              freeDeliveryThreshold: storeSettings.free_delivery_threshold ?? 200,
             });
           } else {
             // Seed defaults since table has no config
@@ -468,6 +474,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               brandFont: '',
               flashDeals: { enabled: false, items: [] },
               recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
+              freeDeliveryThreshold: 200,
             };
             const { error } = await supabase.from('settings').insert({
               id: 'store',
@@ -492,13 +499,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
               brand_img_size: resolvedSettings.brandImgSize,
               brand_font: resolvedSettings.brandFont,
               flash_deals: resolvedSettings.flashDeals,
-              recommendations: resolvedSettings.recommendations
+              recommendations: resolvedSettings.recommendations,
+              free_delivery_threshold: resolvedSettings.freeDeliveryThreshold
             });
             if (error) console.error("Error seeding settings:", error);
           }
         }
       } catch (err) {
         console.error('Failed to init/fetch database from Supabase:', err);
+      } finally {
+        setLoading(false);
       }
     }
     initDb();
@@ -708,7 +718,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       brand_img_size: next.brandImgSize,
       brand_font: next.brandFont,
       flash_deals: next.flashDeals,
-      recommendations: next.recommendations
+      recommendations: next.recommendations,
+      free_delivery_threshold: next.freeDeliveryThreshold
     });
     if (error) console.error("Error updating settings in Supabase:", error);
   };
@@ -868,7 +879,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const afterDiscount = Math.max(0, subtotal - discountAmount - cartonDiscountAmount); 
     const tax = afterDiscount * 0.15;
-    const isFreeDelivery = afterDiscount >= 200;
+    const isFreeDelivery = afterDiscount >= (settings.freeDeliveryThreshold ?? 200);
     const deliveryFee = deliveryMethod === 'delivery' ? (isFreeDelivery ? 0 : 15) : 0;
     msg += `--------------------------------\n`;
     msg += `المجموع الفرعي: ${subtotal.toFixed(2)} ر.س\n`;
@@ -905,6 +916,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const reorderCategories = (draggedId: string, targetId: string) => {
+    setCategories(prev => {
+      const list = [...prev];
+      const draggedIdx = list.findIndex(c => c.id === draggedId);
+      const targetIdx = list.findIndex(c => c.id === targetId);
+      if (draggedIdx === -1 || targetIdx === -1) return prev;
+      
+      const [draggedCat] = list.splice(draggedIdx, 1);
+      const newTargetIdx = list.findIndex(c => c.id === targetId);
+      list.splice(newTargetIdx, 0, draggedCat);
+      
+      const updatedList = list.map((c, i) => ({ ...c, sortOrder: i }));
+      
+      // Update sort order in Supabase
+      updatedList.forEach(c => {
+        supabase.from('categories').update({ sort_order: c.sortOrder }).eq('id', c.id).then(({ error }) => {
+          if (error) console.error("Error updating category sort order:", error);
+        });
+      });
+      
+      return updatedList;
+    });
+  };
+
   return (
     <AppContext.Provider value={{
       isAdmin, login, logout,
@@ -912,7 +947,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       menuItems, addMenuItem, updateMenuItem, deleteMenuItem, replaceMenuItems,
       cart, addToCart, updateCartQuantity, removeFromCart, updateCartNotes, clearCart,
       settings, updateSettings, featuredItems, discountResult, sendWhatsAppOrder,
-      reorderMenuItems
+      reorderMenuItems, reorderCategories, loading
     }}>{children}</AppContext.Provider>
   );
 }

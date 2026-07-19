@@ -160,7 +160,7 @@ function FeaturedCarousel({ items, categories: cats, title, subtitle, countLabel
 /* ═══ Main App Component ═══ */
 export default function App() {
   const ctx = useApp();
-  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems, loading, reorderMenuItems } = ctx;
+  const { categories, menuItems, cart, isAdmin, login, addToCart, settings, featuredItems, reorderMenuItems, reorderCategories, loading } = ctx;
   
   const activeDietaryFilters = useMemo(() => (settings?.dietaryFilters || []).filter(d => d.enabled), [settings?.dietaryFilters]);
   const featuredCfg = settings?.featured || { title: '', subtitle: '', enabled: true, itemIds: [], style: 'scroll' as const };
@@ -180,6 +180,7 @@ export default function App() {
   
   // Drag and drop sorting states
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [draggedCatId, setDraggedCatId] = useState<string | null>(null);
 
   // Parse deep link query param to open product detail automatically
   useEffect(() => {
@@ -219,19 +220,29 @@ export default function App() {
     setDraggedItemId(null);
   };
 
-  // حماية صارمة لمنع الوميض: نتحقق هنا محلياً من وصول البيانات بشكل حقيقي وتخطي أي قيم كاش أو قيم افتراضية قديمة
-  const [isReady, setIsReady] = useState(false);
+  const handleCatDragStart = (e: React.DragEvent, id: string) => {
+    if (!isAdmin || searchQuery) return;
+    setDraggedCatId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
-  useEffect(() => {
-    // نتحقق أن الـ loading في التطبيق انتهى، وأن الـ settings حقيقية وليست مساوية للقيم الافتراضية الأولية فقط
-    if (!loading && settings && settings.texts && settings.texts.heroTitle !== DEFAULT_TEXTS.heroTitle) {
-      setIsReady(true);
-    } else if (!loading && settings) {
-      // كخيار احتياطي إذا كان المستخدم لم يغير العنوان الافتراضي، ننتظر نصف ثانية للاستقرار الكامل
-      const fallbackTimer = setTimeout(() => setIsReady(true), 600);
-      return () => clearTimeout(fallbackTimer);
+  const handleCatDragOver = (e: React.DragEvent) => {
+    if (!isAdmin || searchQuery) return;
+    e.preventDefault();
+  };
+
+  const handleCatDrop = (e: React.DragEvent, targetId: string) => {
+    if (!isAdmin || searchQuery || !draggedCatId) return;
+    e.preventDefault();
+    if (draggedCatId !== targetId) {
+      reorderCategories(draggedCatId, targetId);
     }
-  }, [loading, settings]);
+    setDraggedCatId(null);
+  };
+
+  const handleCatDragEnd = () => {
+    setDraggedCatId(null);
+  };
 
   const handleSelectItem = useCallback((item: MenuItem) => { 
     if (item.optionGroups && item.optionGroups.length > 0) {
@@ -286,12 +297,11 @@ export default function App() {
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
-  // إخفاء المتجر بالكامل خلف شاشة التحميل لمنع الوميض نهائياً لحين جلب إعدادات لوحة التحكم
-  if (!isReady) {
+  // إخفاء المتجر بالكامل خلف شاشة التحميل لحين جلب إعدادات لوحة التحكم
+  if (loading) {
     return (
       <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-50 via-white to-teal-50/20 flex flex-col items-center justify-center p-6 select-none animate-fadeIn">
         <div className="flex flex-col items-center max-w-sm w-full gap-8">
-          {/* Logo container with pulse glow and diagonal sweeps */}
           <div className="loader-logo-container loader-logo-shine relative p-4 flex items-center justify-center max-w-[280px]">
             <img 
               src="https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww" 
@@ -302,7 +312,6 @@ export default function App() {
             />
           </div>
           
-          {/* Premium loading text and dynamic progress bar */}
           <div className="w-48 flex flex-col items-center gap-3">
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/40">
               <div className="h-full bg-gradient-to-r from-teal-400 via-cyan-500 to-teal-500 rounded-full loader-progress-bar" />
@@ -326,6 +335,11 @@ export default function App() {
     return (
       <button 
         key={cat.id} 
+        draggable={isAdmin}
+        onDragStart={(e) => handleCatDragStart(e, cat.id)}
+        onDragOver={handleCatDragOver}
+        onDrop={(e) => handleCatDrop(e, cat.id)}
+        onDragEnd={handleCatDragEnd}
         onClick={() => handleCatClick(cat.id)} 
         title={cat.name || ''}
         className={`cat-card flex flex-col items-center justify-center rounded-2xl border transition-all duration-300 cursor-pointer ${
@@ -411,42 +425,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* البانر الرئيسي */}
-      <div className={`relative border-b border-slate-100/60 overflow-hidden ${settings?.heroBgEnabled === false ? 'bg-gradient-to-br from-amber-50 via-orange-50/60 to-amber-50/40' : ''}`} style={{ minHeight: 140 }}>
-        {settings?.heroBgEnabled !== false && (
-          <>
-            {settings?.heroBgUrl ? (
-              <img src={cvtUrl(settings.heroBgUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" crossOrigin="anonymous" referrerPolicy="no-referrer" />
-            ) : (
-              <img src="/images/hero-bg.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/90 via-orange-50/80 to-amber-50/85" />
-          </>
-        )}
-        <div className="absolute right-0 top-0 opacity-5 pointer-events-none transform translate-x-12"><Sparkles className="w-48 h-48 text-amber-300" /></div>
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-8">
-          <span className="inline-block text-[10px] bg-white/70 text-amber-700 font-extrabold px-3 py-1.5 rounded-full border border-amber-300/40 tracking-wider backdrop-blur-sm shadow-sm">{T.menuTitle}</span>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-800 mt-3 leading-tight tracking-tight drop-shadow-sm">
-            {T.heroTitle}
-          </h2>
-          <p className="text-xs text-slate-600 font-medium mt-2 max-w-lg">{T.heroSubtitle}</p>
-          
-          <div className="flex flex-wrap items-center gap-3 mt-4">
-            <div className="flex items-center gap-1.5 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/80 shadow-sm">
-              <span className="text-[10px] font-bold text-slate-700">{menuItems.length} صنف</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/80 shadow-sm">
-              <span className="text-sm">📂</span>
-              <span className="text-[10px] font-bold text-slate-700">{categories.length} تصنيف</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/80 shadow-sm">
-              <span className="text-sm">🚚</span>
-              <span className="text-[10px] font-bold text-green-700">توصيل مجاني +200</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* القسم المميز */}
       {featuredCfg.enabled && featuredItems && featuredItems.length > 0 && activeCategory === 'all' && !searchQuery && (

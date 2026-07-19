@@ -141,6 +141,15 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
           {/* ═══ SETTINGS TAB ═══ */}
           {tab === 'settings' && (
             <div className="space-y-6 max-w-lg mx-auto animate-slideUp">
+              {/* Free Delivery Threshold */}
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-3">
+                <h4 className="text-xs font-black text-green-800 flex items-center gap-1.5">🚚 الحد الأدنى للطلب (توصيل مجاني)</h4>
+                <p className="text-[10px] text-green-600 font-medium">حدد المبلغ الذي يحصل العميل بعده على توصيل مجاني</p>
+                <div className="flex gap-2">
+                  <input type="number" min="0" value={ctx.settings.freeDeliveryThreshold ?? 200} onChange={e => ctx.updateSettings({ freeDeliveryThreshold: parseInt(e.target.value) || 0 })} className="w-full p-2.5 border border-green-200 rounded-xl text-sm bg-white focus:outline-none focus:border-green-500" />
+                </div>
+              </div>
+
               {/* Logo */}
               <div>
                 <label className="text-sm font-bold text-slate-700 mb-2 block flex items-center gap-2"><Image className="w-4 h-4 text-amber-500" /> رابط اللوجو</label>

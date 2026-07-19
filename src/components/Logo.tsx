@@ -63,7 +63,6 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
             <span className="logo-text-shimmer" style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: cfg.title, letterSpacing: '0.08em', textTransform: 'uppercase' as const }}></span>
-            <span className="logo-chef-glow" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: cfg.chef, marginLeft: 3 }}></span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
             <div className="logo-line-animate" style={{ flex: 1, height: 1.5, borderRadius: 2 }} />
@@ -100,7 +99,6 @@ export function FooterLogo() {
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline' }}>
             <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 900, fontSize: 17, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#5c3a1e' }}>RAWBILLA</span>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: 'italic', fontSize: 17, marginLeft: 3, color: '#d97706' }}>Chef</span>
           </div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 9, color: '#92400e', marginTop: 2 }}>
             

@@ -224,7 +224,7 @@ export function ProductDetail({ item, onClose, onAddToCart }: ProductDetailProps
                 <Truck className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-black text-green-800">🎉 توصيل مجاني للطلبات فوق 200 ر.س</p>
+                <p className="text-xs font-black text-green-800">🎉 توصيل مجاني للطلبات فوق {settings.freeDeliveryThreshold ?? 200} ر.س</p>
                 <p className="text-[10px] text-green-600 font-medium mt-0.5">اطلب أكثر ووفّر رسوم التوصيل!</p>
               </div>
             </div>

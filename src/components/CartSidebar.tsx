@@ -21,6 +21,16 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
   const [address, setAddress] = useState('');
   const [childDob, setChildDob] = useState('');
 
+  const dobParts = childDob.split('-');
+  const dobYear = dobParts[0] || '';
+  const dobMonth = dobParts[1] || '';
+  const dobDay = dobParts[2] || '';
+
+  const updateDob = (y: string, m: string, d: string) => {
+    if (!y && !m && !d) setChildDob('');
+    else setChildDob(`${y}-${m}-${d}`);
+  };
+
   const FREE_DELIVERY_MIN = ctx.settings.freeDeliveryThreshold ?? 200;
 
   const subtotal = cart.reduce((t, ci) => {
@@ -131,7 +141,20 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
           {ctx.settings.childDobField?.enabled !== false && (
             <div>
               <label className="text-[10px] text-indigo-600 font-bold block mb-1 pr-1">{ctx.settings.childDobField?.label || '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)'}</label>
-              <input value={childDob} onChange={e => setChildDob(e.target.value)} type="text" placeholder="مثال: 2023/05/12 أو مايو 2023" className="w-full p-3 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700" />
+              <div className="flex gap-2">
+                <select value={dobDay} onChange={e => updateDob(dobYear, dobMonth, e.target.value)} className="w-1/3 p-2.5 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 cursor-pointer">
+                  <option value="">اليوم</option>
+                  {Array.from({length: 31}, (_, i) => <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>)}
+                </select>
+                <select value={dobMonth} onChange={e => updateDob(dobYear, e.target.value, dobDay)} className="w-1/3 p-2.5 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 cursor-pointer">
+                  <option value="">الشهر</option>
+                  {Array.from({length: 12}, (_, i) => <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>)}
+                </select>
+                <select value={dobYear} onChange={e => updateDob(e.target.value, dobMonth, dobDay)} className="w-1/3 p-2.5 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 cursor-pointer">
+                  <option value="">السنة</option>
+                  {Array.from({length: 30}, (_, i) => { const y = new Date().getFullYear() - i; return <option key={y} value={String(y)}>{y}</option>; })}
+                </select>
+              </div>
             </div>
           )}
           {deliveryMethod === 'delivery' && <input value={address} onChange={e => setAddress(e.target.value)} placeholder="عنوان التوصيل *" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />}

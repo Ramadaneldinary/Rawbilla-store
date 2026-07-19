@@ -800,6 +800,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                             </div>
                             <div className="flex items-center gap-0.5 shrink-0">
                               <button onClick={() => ctx.updateMenuItem(m.id, { hidden: !m.hidden })} className={`p-1 rounded transition cursor-pointer ${m.hidden ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'}`} title={m.hidden ? 'إظهار' : 'إخفاء'}>{m.hidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}</button>
+                              <button onClick={() => ctx.updateMenuItem(m.id, { outOfStock: !m.outOfStock })} className={`p-1 rounded transition cursor-pointer ${m.outOfStock ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-400 hover:text-red-500 hover:bg-slate-100'}`} title={m.outOfStock ? 'إرجاع للتوفر' : 'نفذ المخزون'}><AlertTriangle className="w-3 h-3" /></button>
                               <button onClick={() => moveProd(m.id, -1)} className="p-1 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded transition cursor-pointer" title="لأعلى"><ArrowUp className="w-3 h-3" /></button>
                               <button onClick={() => moveProd(m.id, 1)} className="p-1 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded transition cursor-pointer" title="لأسفل"><ArrowDown className="w-3 h-3" /></button>
                               <button onClick={() => startEditProd(m)} className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition cursor-pointer"><Pencil className="w-3 h-3" /></button>
@@ -822,7 +823,11 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                       {ctx.menuItems.filter(m => !ctx.categories.find(c => c.id === m.category)).map(m => (
                         <div key={m.id} className="flex items-center justify-between p-2.5 bg-white border border-slate-100 rounded-xl">
                           <div className="flex items-center gap-2.5"><span className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 text-xs font-black shrink-0">{m.name.charAt(0)}</span><span className="text-xs font-bold text-slate-800">{m.name}</span></div>
-                          <div className="flex items-center gap-0.5"><button onClick={() => startEditProd(m)} className="p-1 text-slate-400 hover:text-amber-600 rounded cursor-pointer"><Pencil className="w-3 h-3" /></button><button onClick={() => { if (confirm('حذف؟')) ctx.deleteMenuItem(m.id); }} className="p-1 text-slate-400 hover:text-red-600 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button></div>
+                          <div className="flex items-center gap-0.5">
+                            <button onClick={() => ctx.updateMenuItem(m.id, { hidden: !m.hidden })} className={`p-1 rounded transition cursor-pointer ${m.hidden ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'}`} title={m.hidden ? 'إظهار' : 'إخفاء'}>{m.hidden ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}</button>
+                            <button onClick={() => ctx.updateMenuItem(m.id, { outOfStock: !m.outOfStock })} className={`p-1 rounded transition cursor-pointer ${m.outOfStock ? 'text-red-500 hover:text-red-600 bg-red-50' : 'text-slate-400 hover:text-red-500 hover:bg-slate-100'}`} title={m.outOfStock ? 'إرجاع للتوفر' : 'نفذ المخزون'}><AlertTriangle className="w-3 h-3" /></button>
+                            <button onClick={() => startEditProd(m)} className="p-1 text-slate-400 hover:text-amber-600 rounded cursor-pointer"><Pencil className="w-3 h-3" /></button><button onClick={() => { if (confirm('حذف؟')) ctx.deleteMenuItem(m.id); }} className="p-1 text-slate-400 hover:text-red-600 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button>
+                          </div>
                         </div>
                       ))}
                     </div>

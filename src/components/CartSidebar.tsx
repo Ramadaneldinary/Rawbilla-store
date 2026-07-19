@@ -131,7 +131,7 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
           {ctx.settings.childDobField?.enabled !== false && (
             <div>
               <label className="text-[10px] text-indigo-600 font-bold block mb-1 pr-1">{ctx.settings.childDobField?.label || '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)'}</label>
-              <input dir="ltr" value={childDob} onChange={e => setChildDob(e.target.value)} type="date" className="w-full p-3 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 font-sans text-right" />
+              <input value={childDob} onChange={e => setChildDob(e.target.value)} type="text" placeholder="مثال: 2023/05/12 أو مايو 2023" className="w-full p-3 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700" />
             </div>
           )}
           {deliveryMethod === 'delivery' && <input value={address} onChange={e => setAddress(e.target.value)} placeholder="عنوان التوصيل *" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />}

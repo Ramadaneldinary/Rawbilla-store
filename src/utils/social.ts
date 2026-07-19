@@ -41,13 +41,6 @@ export function getShareUrl(item: MenuItem, siteUrl: string, whatsappNumber: str
     const separator = siteUrl.includes('?') ? '&' : '?';
     productShareUrl = `${siteUrl}${separator}product=${item.id}`;
   }
-  if (item.images && item.images.length > 0) {
-    // If the image is an absolute URL (like supabase storage or google drive), include it.
-    if (item.images[0].startsWith('http')) {
-      msg += `🖼️ صورة المنتج:\n${item.images[0]}\n\n`;
-    }
-  }
-
   msg += `شاهد المنتج واطلب الآن:\n${productShareUrl}\n\n`;
   if (cleanNumber) {
     msg += `أو تواصل مباشرة: wa.me/${cleanNumber}`;

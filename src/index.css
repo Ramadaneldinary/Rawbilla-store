@@ -131,13 +131,25 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 
 /* Loading screen custom premium animations */
 @keyframes logoPulseGlow {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 15px rgba(20, 184, 166, 0.15));
+  0% {
+    transform: scale(1) translateY(0) rotate(-1deg);
+    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
+  }
+  25% {
+    transform: scale(1.08) translateY(-5px) rotate(2deg);
+    filter: drop-shadow(0 15px 35px rgba(20, 184, 166, 0.4));
   }
   50% {
-    transform: scale(1.04);
-    filter: drop-shadow(0 0 35px rgba(20, 184, 166, 0.35)) drop-shadow(0 0 10px rgba(6, 182, 212, 0.15));
+    transform: scale(1) translateY(0) rotate(-1deg);
+    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
+  }
+  75% {
+    transform: scale(1.04) translateY(-2px) rotate(1deg);
+    filter: drop-shadow(0 10px 25px rgba(20, 184, 166, 0.3));
+  }
+  100% {
+    transform: scale(1) translateY(0) rotate(-1deg);
+    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
   }
 }
 
@@ -154,7 +166,7 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 }
 
 .loader-logo-container {
-  animation: logoPulseGlow 3s ease-in-out infinite;
+  animation: logoPulseGlow 2.5s ease-in-out infinite;
 }
 
 .loader-logo-shine {

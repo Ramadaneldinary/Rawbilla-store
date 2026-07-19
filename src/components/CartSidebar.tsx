@@ -6,7 +6,6 @@ import { DiscountProgressBar } from './DiscountProgressBar';
 import { Recommendations } from './Recommendations';
 import { X, Plus, Minus, Trash2, Coffee, MessageSquare, ShoppingCart, Send, Truck } from 'lucide-react';
 
-const FREE_DELIVERY_MIN = 200;
 const DELIVERY_FEE = 15;
 
 export function CartSidebar({ onClose }: { onClose: () => void }) {
@@ -20,6 +19,9 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [childDob, setChildDob] = useState('');
+
+  const FREE_DELIVERY_MIN = ctx.settings.freeDeliveryThreshold ?? 200;
 
   const subtotal = cart.reduce((t, ci) => {
     return t + calcUnitPrice(ci.menuItem.price, ci.selectedOptions) * ci.quantity;
@@ -40,8 +42,8 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
     if (!name.trim() || !phone.trim()) return;
     if (deliveryMethod === 'delivery' && !address.trim()) return;
     // Save customer data + order
-    saveCustomerOrder(phone, name, address, cart, total);
-    ctx.sendWhatsAppOrder(deliveryMethod, name, phone, address);
+    saveCustomerOrder(phone, name, address, cart, total, childDob);
+    ctx.sendWhatsAppOrder(deliveryMethod, name, phone, address, childDob);
     ctx.clearCart();
     setShowCheckout(false);
     onClose();
@@ -57,6 +59,7 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
       if (customer) {
         if (customer.name && !name) setName(customer.name);
         if (customer.address && !address) setAddress(customer.address);
+        if (customer.childDob && !childDob) setChildDob(customer.childDob);
         setReorderMsg(`عميل سابق — ${customer.orders.length} طلب`);
       }
     }
@@ -125,6 +128,12 @@ export function CartSidebar({ onClose }: { onClose: () => void }) {
               </div>
             )}
           </div>
+          {ctx.settings.childDobField?.enabled !== false && (
+            <div>
+              <label className="text-[10px] text-indigo-600 font-bold block mb-1 pr-1">{ctx.settings.childDobField?.label || '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)'}</label>
+              <input value={childDob} onChange={e => setChildDob(e.target.value)} type="date" className="w-full p-3 border border-indigo-200 rounded-xl text-sm bg-indigo-50/30 focus:outline-none focus:border-indigo-400 text-slate-700 font-mono" />
+            </div>
+          )}
           {deliveryMethod === 'delivery' && <input value={address} onChange={e => setAddress(e.target.value)} placeholder="عنوان التوصيل *" className="w-full p-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-500" />}
           <div className="bg-white border border-slate-100 rounded-2xl p-3 space-y-1.5 text-xs font-medium text-slate-500">
             <div className="flex justify-between"><span>{T.cartSubtotal || 'المجموع'}</span><span className="font-bold text-slate-700">{subtotal.toFixed(2)} ر.س</span></div>

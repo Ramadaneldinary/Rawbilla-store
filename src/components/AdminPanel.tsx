@@ -150,6 +150,26 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
 
+              {/* Child DOB Field Settings */}
+              <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-indigo-800 flex items-center gap-1.5">👶 خانة تاريخ ميلاد أول فرحة</h4>
+                  <button onClick={() => {
+                      const cur = ctx.settings.childDobField || { enabled: true, label: '' };
+                      ctx.updateSettings({ childDobField: { ...cur, enabled: !cur.enabled } });
+                    }}
+                    className={`w-12 h-6 rounded-full relative transition-all duration-300 cursor-pointer ${ctx.settings.childDobField?.enabled !== false ? 'bg-gradient-to-r from-indigo-400 to-purple-500' : 'bg-slate-300'}`}>
+                    <div className={`w-4 h-4 bg-white rounded-full shadow absolute top-1 transition-all duration-300 ${ctx.settings.childDobField?.enabled !== false ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+                <p className="text-[10px] text-indigo-600 font-medium">تخصيص الكلمات التي ستظهر للعميل في السلة (يمكنك إيقافها)</p>
+                {ctx.settings.childDobField?.enabled !== false && (
+                  <div className="mt-2">
+                    <input type="text" value={ctx.settings.childDobField?.label || ''} onChange={e => ctx.updateSettings({ childDobField: { enabled: true, label: e.target.value } })} placeholder="مثال: 👶 تاريخ ميلاد أول فرحة..." className="w-full p-2.5 border border-indigo-200 rounded-xl text-xs bg-white focus:outline-none focus:border-indigo-500 font-bold" />
+                  </div>
+                )}
+              </div>
+
               {/* Logo */}
               <div>
                 <label className="text-sm font-bold text-slate-700 mb-2 block flex items-center gap-2"><Image className="w-4 h-4 text-amber-500" /> رابط اللوجو</label>

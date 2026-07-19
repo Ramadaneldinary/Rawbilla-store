@@ -12,6 +12,7 @@ export interface CustomerRecord {
   address: string;
   orders: SavedOrder[];
   lastOrder: string; // ISO date
+  childDob?: string; // Optional: Birth date of first child
 }
 
 const LS_KEY = 'pc_customers';
@@ -33,7 +34,8 @@ export function saveCustomerOrder(
   name: string,
   address: string,
   cartItems: { menuItem: { id: string; name: string; price: number }; selectedOptions: { name: string; price: number }[]; quantity: number }[],
-  total: number
+  total: number,
+  childDob?: string
 ) {
   const cleanPhone = phone.replace(/[^0-9]/g, '');
   if (!cleanPhone) return;
@@ -54,10 +56,11 @@ export function saveCustomerOrder(
   if (customers[cleanPhone]) {
     customers[cleanPhone].name = name;
     if (address) customers[cleanPhone].address = address;
+    if (childDob) customers[cleanPhone].childDob = childDob;
     customers[cleanPhone].orders.push(order);
     customers[cleanPhone].lastOrder = order.date;
   } else {
-    customers[cleanPhone] = { phone: cleanPhone, name, address, orders: [order], lastOrder: order.date };
+    customers[cleanPhone] = { phone: cleanPhone, name, address, orders: [order], lastOrder: order.date, childDob };
   }
 
   saveCustomers(customers);

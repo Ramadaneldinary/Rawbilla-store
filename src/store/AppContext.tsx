@@ -175,6 +175,7 @@ export interface StoreSettings {
   // Smart Recommendations
   recommendations: { enabled: boolean; title: string };
   freeDeliveryThreshold: number;
+  childDobField?: { enabled: boolean; label: string };
 }
 
 export { DEFAULT_TEXTS };
@@ -227,7 +228,7 @@ interface AppState {
   featuredItems: MenuItem[];
 
   discountResult: DiscountResult;
-  sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string) => void;
+  sendWhatsAppOrder: (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string) => void;
   reorderMenuItems: (draggedId: string, targetId: string) => void;
   reorderCategories: (draggedId: string, targetId: string) => void;
   loading: boolean;
@@ -263,6 +264,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flashDeals: { enabled: false, items: [] },
     recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
     freeDeliveryThreshold: 200,
+    childDobField: { enabled: true, label: '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)' }
   });
   const [cart, setCart] = useState<CartItem[]>([]);
 
@@ -450,6 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
               recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
               freeDeliveryThreshold: storeSettings.free_delivery_threshold ?? 200,
+              childDobField: storeSettings.child_dob_field || { enabled: true, label: '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)' },
             });
           } else {
             // Seed defaults since table has no config
@@ -475,6 +478,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               flashDeals: { enabled: false, items: [] },
               recommendations: { enabled: true, title: 'قد يعجبك أيضاً' },
               freeDeliveryThreshold: 200,
+              childDobField: { enabled: true, label: '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)' }
             };
             const { error } = await supabase.from('settings').insert({
               id: 'store',
@@ -500,7 +504,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               brand_font: resolvedSettings.brandFont,
               flash_deals: resolvedSettings.flashDeals,
               recommendations: resolvedSettings.recommendations,
-              free_delivery_threshold: resolvedSettings.freeDeliveryThreshold
+              free_delivery_threshold: resolvedSettings.freeDeliveryThreshold,
+              child_dob_field: resolvedSettings.childDobField
             });
             if (error) console.error("Error seeding settings:", error);
           }
@@ -719,7 +724,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       brand_font: next.brandFont,
       flash_deals: next.flashDeals,
       recommendations: next.recommendations,
-      free_delivery_threshold: next.freeDeliveryThreshold
+      free_delivery_threshold: next.freeDeliveryThreshold,
+      child_dob_field: next.childDobField
     });
     if (error) console.error("Error updating settings in Supabase:", error);
   };
@@ -838,11 +844,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [cart, settings.discountTiers, settings.discountEnabled, settings.featured]);
 
   /* WhatsApp */
-  const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string) => {
+  const sendWhatsAppOrder = (deliveryMethod: string, name: string, phone: string, address: string, childDob?: string) => {
     let msg = `*طلب جديد - RAWBILLA*\n`;
     msg += `--------------------------------\n`;
     msg += `الاسم: *${name}*\n`;
     msg += `الهاتف: *${phone}*\n`;
+    if (childDob) msg += `تاريخ ميلاد أول فرحة: *${childDob}* 👶\n`;
     msg += `نوع الطلب: *${deliveryMethod === 'delivery' ? 'توصيل' : 'استلام'}*\n`;
     if (deliveryMethod === 'delivery' && address) msg += `العنوان: *${address}*\n`;
     msg += `--------------------------------\n`;

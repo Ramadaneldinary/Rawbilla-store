@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import { Category, MenuItem, OptionItem, DietaryFilter, DEFAULT_CATEGORIES, DEFAULT_MENU_ITEMS, DEFAULT_DIETARY_FILTERS } from '../data/menuData';
 import { calcUnitPrice } from '../utils/price';
 import { incrementOrderCount } from '../utils/social';

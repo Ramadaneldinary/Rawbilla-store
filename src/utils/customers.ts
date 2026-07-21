@@ -15,6 +15,7 @@ export interface CustomerRecord {
   childDob?: string; // Optional: Birth date of first child
   childName?: string; // Optional: Name of first child
   childGender?: string; // Optional: Gender of first child (ولد / بنت)
+}
 
 const LS_KEY = 'pc_customers';
 

@@ -451,8 +451,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               brandFont: storeSettings.brand_font || '',
               flashDeals: storeSettings.flash_deals || { enabled: false, items: [] },
               recommendations: storeSettings.recommendations || { enabled: true, title: 'قد يعجبك أيضاً' },
-              freeDeliveryThreshold: storeSettings.free_delivery_threshold ?? 200,
-              childDobField: storeSettings.child_dob_field || { enabled: true, label: '👶 تاريخ ميلاد أول فرحة (أول مولود) لنجعله مميزاً! (اختياري)' },
+              freeDeliveryThreshold: storeSettings.featured?._extra?.freeDeliveryThreshold ?? storeSettings.free_delivery_threshold ?? 200,
+              childDobField: storeSettings.featured?._extra?.childDobField || storeSettings.child_dob_field || { enabled: true, label: '👶 بيانات أول فرحة (اختياري)' },
             });
           } else {
             // Seed defaults since table has no config
@@ -707,7 +707,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       discount_tiers: next.discountTiers,
       discount_enabled: next.discountEnabled,
       dietary_filters: next.dietaryFilters,
-      featured: next.featured,
       texts: next.texts,
       sales_rep: next.salesRep,
       hero_bg_url: next.heroBgUrl,
@@ -724,8 +723,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       brand_font: next.brandFont,
       flash_deals: next.flashDeals,
       recommendations: next.recommendations,
-      free_delivery_threshold: next.freeDeliveryThreshold,
-      child_dob_field: next.childDobField
+      featured: {
+        ...next.featured,
+        _extra: {
+          freeDeliveryThreshold: next.freeDeliveryThreshold,
+          childDobField: next.childDobField
+        }
+      }
     });
     if (error) console.error("Error updating settings in Supabase:", error);
   };

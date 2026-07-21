@@ -265,7 +265,7 @@ export default function App() {
   }, []);
 
   const filteredItems = useMemo(() => {
-    return menuItems.filter(item => {
+    const filtered = menuItems.filter(item => {
       if (item.hidden) return false;
       if (activeCategory !== 'all' && item.category !== activeCategory) return false;
       
@@ -282,7 +282,14 @@ export default function App() {
       if (selectedDietary.length > 0 && !selectedDietary.every(f => item.dietary?.includes(f))) return false;
       return true;
     });
-  }, [menuItems, activeCategory, searchQuery, selectedDietary, activeDietaryFilters]);
+
+    const catOrderMap = new Map(categories.map((c, idx) => [c.id, idx]));
+    return filtered.sort((a, b) => {
+      const aCat = catOrderMap.has(a.category) ? catOrderMap.get(a.category)! : 999;
+      const bCat = catOrderMap.has(b.category) ? catOrderMap.get(b.category)! : 999;
+      return aCat - bCat;
+    });
+  }, [menuItems, categories, activeCategory, searchQuery, selectedDietary, activeDietaryFilters]);
 
   const handleAdminLogin = useCallback(() => { 
     if (login(adminCode)) { 

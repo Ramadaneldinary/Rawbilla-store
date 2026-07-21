@@ -697,42 +697,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateCartNotes = (id: string, notes: string) => setCart(prev => prev.map(ci => ci.id === id ? { ...ci, notes } : ci));
   const clearCart = () => setCart([]);
   
-  const updateSettings = async (patch: Partial<StoreSettings>) => {
-    const next = { ...settings, ...patch };
-    setSettings(next);
-    const { error } = await supabase.from('settings').upsert({
-      id: 'store',
-      logo_url: next.logoUrl,
-      whatsapp_number: next.whatsappNumber,
-      discount_tiers: next.discountTiers,
-      discount_enabled: next.discountEnabled,
-      dietary_filters: next.dietaryFilters,
-      texts: next.texts,
-      sales_rep: next.salesRep,
-      hero_bg_url: next.heroBgUrl,
-      hero_bg_enabled: next.heroBgEnabled,
-      content_bg_url: next.contentBgUrl,
-      content_bg_enabled: next.contentBgEnabled,
-      footer_bg_url: next.footerBgUrl,
-      footer_bg_enabled: next.footerBgEnabled,
-      footer_logo_url: next.footerLogoUrl,
-      header_brand_img_url: next.headerBrandImgUrl,
-      brand_text: next.brandText,
-      brand_text_color: next.brandTextColor,
-      brand_img_size: next.brandImgSize,
-      brand_font: next.brandFont,
-      flash_deals: next.flashDeals,
-      recommendations: next.recommendations,
-      featured: {
-        ...next.featured,
-        _extra: {
-          freeDeliveryThreshold: next.freeDeliveryThreshold,
-          childDobField: next.childDobField
-        }
-      }
+  const updateSettings = useCallback((patch: Partial<StoreSettings>) => {
+    setSettings(prev => {
+      const next = { ...prev, ...patch };
+      // Async save to Supabase using the fully merged state
+      (async () => {
+        const { error } = await supabase.from('settings').upsert({
+          id: 'store',
+          logo_url: next.logoUrl,
+          whatsapp_number: next.whatsappNumber,
+          discount_tiers: next.discountTiers,
+          discount_enabled: next.discountEnabled,
+          dietary_filters: next.dietaryFilters,
+          texts: next.texts,
+          sales_rep: next.salesRep,
+          hero_bg_url: next.heroBgUrl,
+          hero_bg_enabled: next.heroBgEnabled,
+          content_bg_url: next.contentBgUrl,
+          content_bg_enabled: next.contentBgEnabled,
+          footer_bg_url: next.footerBgUrl,
+          footer_bg_enabled: next.footerBgEnabled,
+          footer_logo_url: next.footerLogoUrl,
+          header_brand_img_url: next.headerBrandImgUrl,
+          brand_text: next.brandText,
+          brand_text_color: next.brandTextColor,
+          brand_img_size: next.brandImgSize,
+          brand_font: next.brandFont,
+          flash_deals: next.flashDeals,
+          recommendations: next.recommendations,
+          featured: {
+            ...next.featured,
+            _extra: {
+              freeDeliveryThreshold: next.freeDeliveryThreshold,
+              childDobField: next.childDobField
+            }
+          }
+        });
+        if (error) console.error("Error updating settings in Supabase:", error);
+      })();
+      return next;
     });
-    if (error) console.error("Error updating settings in Supabase:", error);
-  };
+  }, []);
 
 
   /* ═══ Featured Items — resolved list ═══ */

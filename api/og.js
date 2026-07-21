@@ -6,13 +6,20 @@ export default async function handler(req, res) {
   
   let html = '';
   try {
-    const response = await fetch(`${protocol}://${host}/index.html`);
+    const urlToFetch = `${protocol}://${host}/index.html`;
+    const response = await fetch(urlToFetch);
     html = await response.text();
+    if (!html.includes('<div id="root">')) {
+      throw new Error("Invalid HTML fetched");
+    }
   } catch (err) {
-    html = '<!DOCTYPE html><html><head><title>Rawbilla Store</title></head><body></body></html>';
+    console.error("Failed to fetch index.html:", err);
+    // Fallback: minimal valid HTML with a meta refresh just in case, but bots might not like it.
+    // It's better to return the raw HTML if possible.
+    html = '<!DOCTYPE html><html><head><title>Rawbilla Store</title></head><body><p>Loading...</p></body></html>';
   }
 
-  if (product) {
+  if (product && html.includes('<meta property="og:image"')) {
     try {
       const supabaseUrl = process.env.VITE_SUPABASE_URL;
       const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;

@@ -245,7 +245,7 @@ export function ProductDetail({ item, onClose, onAddToCart }: ProductDetailProps
               </div>
 
               {/* Share button */}
-              <a href={getShareUrl(item, window.location.href, settings.whatsappNumber)} target="_blank" rel="noopener noreferrer"
+              <a href={getShareUrl(item, window.location.href, settings)} target="_blank" rel="noopener noreferrer"
                 className="shrink-0 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex flex-col items-center justify-center gap-1 text-white shadow-md hover:shadow-lg active:scale-95 transition cursor-pointer">
                 <Share2 className="w-4 h-4" />
                 <span className="text-[8px] font-bold">شارك</span>

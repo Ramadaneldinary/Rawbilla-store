@@ -123,7 +123,7 @@ export function MenuCard({
                 <Eye className="w-3 h-3" /> التفاصيل
               </span>
               <div className="flex items-center gap-1">
-                <a href={getShareUrl(item, window.location.href, settings.whatsappNumber)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                <a href={getShareUrl(item, window.location.href, settings)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
                   className="w-7 h-7 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg text-white transition-all active:scale-90 cursor-pointer">
                   <Share2 className="w-3 h-3" />
                 </a>

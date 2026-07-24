@@ -282,6 +282,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'discountNextLabel' as const, label: 'كلمة "القادم" في شريط الخصم', ph: 'القادم' },
                   { key: 'discountReachedMsg' as const, label: 'رسالة الوصول لأعلى خصم', ph: 'مبروك! وصلت لأعلى مستوى' },
                   { key: 'discountSavedMsg' as const, label: 'كلمة "وفّرت" في الخصم', ph: 'وفّرت' },
+                  { key: 'defaultShareDesc' as const, label: 'النص الافتراضي لمشاركة المنتج', ph: 'أجود أنواع الشوكولا...' },
                 ]).map(f => (
                   <div key={f.key}>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">{f.label}</label>

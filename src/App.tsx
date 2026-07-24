@@ -309,11 +309,11 @@ export default function App() {
     return (
       <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-slate-50 via-white to-teal-50/20 flex flex-col items-center justify-center p-6 select-none animate-fadeIn">
         <div className="flex flex-col items-center max-w-sm w-full gap-8">
-          <div className="loader-logo-container loader-logo-shine relative p-4 flex items-center justify-center max-w-[280px]">
+          <div className="loader-logo-wrapper relative p-4 flex items-center justify-center w-full max-w-[240px] md:max-w-[280px]">
             <img 
-              src="https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww" 
-              alt="Rawbilla Logo" 
-              className="w-full h-auto object-contain drop-shadow-md rounded-2xl"
+              src={settings?.logoUrl ? cvtUrl(settings.logoUrl) : "https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww"} 
+              alt="Store Logo" 
+              className="w-full h-auto object-contain drop-shadow-2xl"
               crossOrigin="anonymous"
               referrerPolicy="no-referrer"
             />

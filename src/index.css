@@ -130,68 +130,20 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
 
 /* Loading screen custom premium animations */
-@keyframes logoPulseGlow {
-  0% {
-    transform: scale(1) translateY(0) rotate(-1deg);
-    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
-  }
-  25% {
-    transform: scale(1.08) translateY(-5px) rotate(2deg);
-    filter: drop-shadow(0 15px 35px rgba(20, 184, 166, 0.4));
-  }
-  50% {
-    transform: scale(1) translateY(0) rotate(-1deg);
-    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
-  }
-  75% {
-    transform: scale(1.04) translateY(-2px) rotate(1deg);
-    filter: drop-shadow(0 10px 25px rgba(20, 184, 166, 0.3));
-  }
-  100% {
-    transform: scale(1) translateY(0) rotate(-1deg);
-    filter: drop-shadow(0 5px 15px rgba(20, 184, 166, 0.2));
-  }
+@keyframes smoothZoomIn {
+  0% { transform: scale(0.6); opacity: 0; filter: drop-shadow(0 0 0 rgba(20, 184, 166, 0)); }
+  40% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 20px 40px rgba(20, 184, 166, 0.4)); }
+  100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 15px 30px rgba(20, 184, 166, 0.25)); }
 }
 
-@keyframes logoLoadingSweep {
-  0% {
-    left: -150%;
-  }
-  50% {
-    left: 150%;
-  }
-  100% {
-    left: 150%;
-  }
+@keyframes gentleBreathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 15px 30px rgba(20, 184, 166, 0.25)); }
+  50% { transform: scale(1.04); filter: drop-shadow(0 20px 40px rgba(20, 184, 166, 0.4)); }
 }
 
-.loader-logo-container {
-  animation: logoPulseGlow 2.5s ease-in-out infinite;
-}
-
-.loader-logo-shine {
-  position: relative;
-  overflow: hidden;
-}
-
-.loader-logo-shine::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -150%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    to right,
-    transparent 30%,
-    rgba(255, 255, 255, 0.4) 45%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.4) 55%,
-    transparent 70%
-  );
-  transform: rotate(30deg);
-  animation: logoLoadingSweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  pointer-events: none;
+.loader-logo-wrapper {
+  animation: smoothZoomIn 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+             gentleBreathe 4s ease-in-out 1.2s infinite;
 }
 
 @keyframes loaderProgress {

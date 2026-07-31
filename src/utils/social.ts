@@ -26,12 +26,14 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
   
   // Check if item is in an active flash deal
   let displayPrice = item.price;
+  let hasDeal = false;
   if (settings.flashDeals?.enabled && settings.flashDeals.items) {
     const activeDeal = settings.flashDeals.items.find(
       d => d.itemId === item.id && new Date(d.endsAt).getTime() > Date.now()
     );
     if (activeDeal) {
       displayPrice = activeDeal.newPrice;
+      hasDeal = true;
     }
   }
 
@@ -39,11 +41,20 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
   if (item.nameEn) msg += ` — ${item.nameEn}`;
   msg += `\n\n`;
   
+  if (hasDeal) {
+    msg += `🔥 *فرصة لا تعوض.. إلحق العرض الآن!* 🔥\n\n`;
+  }
+
   if (item.description) {
     msg += `${item.description.slice(0, 150)}...\n\n`;
   }
   
-  msg += `السعر: *${displayPrice} ر.س*`;
+  if (hasDeal) {
+    msg += `السعر السابق: ~${item.price} ر.س~\n`;
+    msg += `سعر العرض الآن: *${displayPrice} ر.س* 🤩`;
+  } else {
+    msg += `السعر: *${displayPrice} ر.س*`;
+  }
   if (item.unit) msg += ` / ${item.unit}`;
   msg += `\n\n`;
   

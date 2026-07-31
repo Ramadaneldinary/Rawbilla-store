@@ -249,7 +249,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'menuTitle' as const, label: 'عنوان القائمة (شريط علوي)', ph: 'قائمة الطعام' },
                   { key: 'heroTitle' as const, label: 'العنوان الرئيسي', ph: 'اكتشف منتجاتنا المميزة' },
                   { key: 'heroSubtitle' as const, label: 'الوصف الفرعي', ph: 'اختر من تشكيلتنا...' },
-                  { key: 'defaultShareDesc' as const, label: 'نص المشاركة الافتراضي للمنتجات', ph: 'أجود أنواع الشوكولا والحلويات...' },
                   { key: 'searchPlaceholder' as const, label: 'نص خانة البحث', ph: 'ابحث عن أصناف...' },
                   { key: 'categoriesLabel' as const, label: 'عنوان التصنيفات', ph: 'التصنيفات' },
                   { key: 'footerTagline' as const, label: 'عبارة أسفل الصفحة', ph: 'صُنع من شغف...' },

@@ -39,8 +39,10 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
   if (item.nameEn) msg += ` — ${item.nameEn}`;
   msg += `\n\n`;
   
-  const desc = item.description || settings.texts?.defaultShareDesc || 'أجود أنواع الشوكولا والحلويات. اطلب الآن واستمتع بالمذاق الرائع.';
-  msg += `${desc.slice(0, 150)}...\n\n`;
+  const desc = item.description || settings.texts?.defaultShareDesc || '';
+  if (desc) {
+    msg += `${desc.slice(0, 150)}...\n\n`;
+  }
   
   msg += `السعر: *${displayPrice} ر.س*`;
   if (item.unit) msg += ` / ${item.unit}`;
@@ -66,4 +68,3 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
   }
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
 }
-

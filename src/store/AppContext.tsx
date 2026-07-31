@@ -137,7 +137,6 @@ const DEFAULT_TEXTS: CustomTexts = {
   discountNextLabel: 'القادم',
   discountReachedMsg: 'مبروك! وصلت لأعلى مستوى',
   discountSavedMsg: 'وفّرت',
-  defaultShareDesc: 'أجود أنواع الشوكولا والحلويات. اطلب الآن واستمتع بالمذاق الرائع.',
 };
 
 /* ───── Sales Rep Card ───── */

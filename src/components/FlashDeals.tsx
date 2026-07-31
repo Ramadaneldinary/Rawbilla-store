@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
-import { Clock, Zap } from 'lucide-react';
+import { Clock, Zap, Share2 } from 'lucide-react';
+import { getShareUrl } from '../utils/social';
+import { StoreSettings } from '../store/AppContext';
 
 function cvt(u: string) { const m = u.match(/drive\.google\.com\/file\/d\/([^/]+)/); return m ? `https://lh3.googleusercontent.com/d/${m[1]}` : u; }
 
@@ -19,7 +21,7 @@ function useCountdown(target: string) {
   return left;
 }
 
-function DealCard({ deal, item, onAdd }: { deal: { oldPrice: number; newPrice: number; endsAt: string }; item: { id: string; name: string; nameEn?: string; images: string[]; colorClass: string }; onAdd: () => void }) {
+function DealCard({ deal, item, onAdd, settings }: { deal: { oldPrice: number; newPrice: number; endsAt: string }; item: { id: string; name: string; nameEn?: string; description?: string; unit?: string; price: number; images: string[]; colorClass: string }; onAdd: () => void; settings: StoreSettings }) {
   const cd = useCountdown(deal.endsAt);
   if (cd.expired) return null;
   const discount = Math.round(((deal.oldPrice - deal.newPrice) / deal.oldPrice) * 100);
@@ -30,6 +32,9 @@ function DealCard({ deal, item, onAdd }: { deal: { oldPrice: number; newPrice: n
       <div className={`relative h-36 bg-gradient-to-br ${item.colorClass} overflow-hidden`}>
         {img && <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" crossOrigin="anonymous" referrerPolicy="no-referrer" />}
         <div className="absolute top-2 left-2 px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded-full shadow-lg animate-pulse">-{discount}%</div>
+        <a href={getShareUrl(item as any, window.location.href, settings)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full text-slate-600 hover:text-green-600 hover:bg-green-50 shadow-md transition-all cursor-pointer">
+          <Share2 className="w-3.5 h-3.5" />
+        </a>
         {/* Countdown */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
           <div className="flex items-center justify-center gap-1">
@@ -76,7 +81,7 @@ export function FlashDeals() {
         {activeDeals.map(deal => {
           const item = menuItems.find(m => m.id === deal.itemId);
           if (!item) return null;
-          return <DealCard key={deal.itemId} deal={deal} item={item} onAdd={() => {
+          return <DealCard key={deal.itemId} deal={deal} item={item} settings={settings} onAdd={() => {
             // Add with deal price — create a copy with the discounted price
             const dealItem = { ...item, price: deal.newPrice, badge: `عرض خاص — كان ${deal.oldPrice} ر.س` };
             addToCart(dealItem, []);

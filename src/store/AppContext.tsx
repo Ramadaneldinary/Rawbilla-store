@@ -97,7 +97,6 @@ export interface CustomTexts {
   discountNextLabel: string;  // "القادم"
   discountReachedMsg: string; // "مبروك! وصلت لأعلى مستوى"
   discountSavedMsg: string;   // "وفّرت"
-  defaultShareDesc?: string;
 }
 
 const DEFAULT_TEXTS: CustomTexts = {
@@ -520,10 +519,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     initDb();
   }, []);
 
-  const login = (code: string) => { if (code === ADMIN_CODE) { setIsAdmin(true); return true; } return false; };
-  const logout = () => setIsAdmin(false);
+  const login = useCallback((code: string) => { if (code === ADMIN_CODE) { setIsAdmin(true); return true; } return false; }, []);
+  const logout = useCallback(() => setIsAdmin(false), []);
 
-  const addCategory = async (cat: Category) => {
+  const addCategory = useCallback(async (cat: Category) => {
     setCategories(prev => [...prev, cat]);
     const { error } = await supabase.from('categories').insert({
       id: cat.id,
@@ -535,9 +534,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sort_order: cat.sortOrder || 0
     });
     if (error) console.error("Error adding category to Supabase:", error);
-  };
+  }, []);
 
-  const updateCategory = async (id: string, patch: Partial<Category>) => {
+  const updateCategory = useCallback(async (id: string, patch: Partial<Category>) => {
     setCategories(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
     const updateData: any = {};
     if (patch.name !== undefined) updateData.name = patch.name;
@@ -549,16 +548,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const { error } = await supabase.from('categories').update(updateData).eq('id', id);
     if (error) console.error("Error updating category in Supabase:", error);
-  };
+  }, []);
 
-  const deleteCategory = async (id: string) => {
+  const deleteCategory = useCallback(async (id: string) => {
     setCategories(prev => prev.filter(c => c.id !== id));
     setMenuItems(prev => prev.filter(m => m.category !== id));
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) console.error("Error deleting category from Supabase:", error);
-  };
+  }, []);
 
-  const addMenuItem = async (item: MenuItem) => {
+  const addMenuItem = useCallback(async (item: MenuItem) => {
     setMenuItems(prev => [...prev, item]);
     const { error } = await supabase.from('menu_items').insert({
       id: item.id,
@@ -589,9 +588,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hidden: item.hidden
     });
     if (error) console.error("Error adding menu item to Supabase:", error);
-  };
+  }, []);
 
-  const updateMenuItem = async (id: string, patch: Partial<MenuItem>) => {
+  const updateMenuItem = useCallback(async (id: string, patch: Partial<MenuItem>) => {
     setMenuItems(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
     const updateData: any = {};
     if (patch.name !== undefined) updateData.name = patch.name;
@@ -622,13 +621,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const { error } = await supabase.from('menu_items').update(updateData).eq('id', id);
     if (error) console.error("Error updating menu item in Supabase:", error);
-  };
+  }, []);
 
-  const deleteMenuItem = async (id: string) => {
+  const deleteMenuItem = useCallback(async (id: string) => {
     setMenuItems(prev => prev.filter(m => m.id !== id));
     const { error } = await supabase.from('menu_items').delete().eq('id', id);
     if (error) console.error("Error deleting menu item from Supabase:", error);
-  };
+  }, []);
 
   /** Batch replace — for import */
   const replaceCategories = async (cats: Category[]) => {
@@ -734,7 +733,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             }
           }
         });
-        if (error) console.error("Error updating settings in Supabase:", error);
+        if (error) {
+          console.error("Error upserting settings to Supabase:", error);
+        }
       })();
       return next;
     });

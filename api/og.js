@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
       
       if (supabaseUrl && supabaseKey) {
-        const productRes = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${product}&select=name,description,image`, {
+        const productRes = await fetch(`${supabaseUrl}/rest/v1/menu_items?id=eq.${product}&select=name,description,images`, {
           headers: {
             'apikey': supabaseKey,
             'Authorization': `Bearer ${supabaseKey}`
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         if (products && products.length > 0) {
           const item = products[0];
           
-          let imgUrl = item.image || '';
+          let imgUrl = (item.images && item.images.length > 0) ? item.images[0] : '';
           if (imgUrl.includes('drive.google.com')) {
             const driveRegexes = [
               /drive\.google\.com\/file\/d\/([^/]+)/,
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
           }
 
           const safeTitle = (item.name || '').replace(/"/g, '&quot;');
-          const safeDesc = (item.description || 'أجود أنواع الشوكولا والحلويات. اطلب الآن واستمتع بالمذاق الرائع.').replace(/"/g, '&quot;');
+          const safeDesc = (item.description || '').replace(/"/g, '&quot;');
           const safeImg = imgUrl.replace(/"/g, '&quot;');
 
           html = html.replace(/<meta property="og:title" content="[^"]*" \/>/g, `<meta property="og:title" content="${safeTitle}" />`);

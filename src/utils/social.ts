@@ -39,9 +39,8 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
   if (item.nameEn) msg += ` — ${item.nameEn}`;
   msg += `\n\n`;
   
-  const desc = item.description || settings.texts?.defaultShareDesc || '';
-  if (desc) {
-    msg += `${desc.slice(0, 150)}...\n\n`;
+  if (item.description) {
+    msg += `${item.description.slice(0, 150)}...\n\n`;
   }
   
   msg += `السعر: *${displayPrice} ر.س*`;

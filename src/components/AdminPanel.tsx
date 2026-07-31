@@ -249,6 +249,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'menuTitle' as const, label: 'عنوان القائمة (شريط علوي)', ph: 'قائمة الطعام' },
                   { key: 'heroTitle' as const, label: 'العنوان الرئيسي', ph: 'اكتشف منتجاتنا المميزة' },
                   { key: 'heroSubtitle' as const, label: 'الوصف الفرعي', ph: 'اختر من تشكيلتنا...' },
+                  { key: 'defaultShareDesc' as const, label: 'نص المشاركة الافتراضي للمنتجات', ph: 'أجود أنواع الشوكولا والحلويات...' },
                   { key: 'searchPlaceholder' as const, label: 'نص خانة البحث', ph: 'ابحث عن أصناف...' },
                   { key: 'categoriesLabel' as const, label: 'عنوان التصنيفات', ph: 'التصنيفات' },
                   { key: 'footerTagline' as const, label: 'عبارة أسفل الصفحة', ph: 'صُنع من شغف...' },
@@ -282,7 +283,6 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   { key: 'discountNextLabel' as const, label: 'كلمة "القادم" في شريط الخصم', ph: 'القادم' },
                   { key: 'discountReachedMsg' as const, label: 'رسالة الوصول لأعلى خصم', ph: 'مبروك! وصلت لأعلى مستوى' },
                   { key: 'discountSavedMsg' as const, label: 'كلمة "وفّرت" في الخصم', ph: 'وفّرت' },
-                  { key: 'defaultShareDesc' as const, label: 'النص الافتراضي لمشاركة المنتج', ph: 'أجود أنواع الشوكولا...' },
                 ]).map(f => (
                   <div key={f.key}>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">{f.label}</label>

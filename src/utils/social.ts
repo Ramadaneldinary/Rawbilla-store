@@ -22,7 +22,7 @@ export function incrementOrderCount(itemId: string, baseCount: number = 0): numb
 
 /** Generate WhatsApp share message for a product */
 export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSettings): string {
-  const cleanNumber = settings.whatsappNumber ? settings.whatsappNumber.replace(/[^0-9]/g, '') : '';
+  const cleanNumber = settings.whatsappNumber ? settings.whatsappNumber.replace(/[^0-9]/g, '') : '966531254475';
   
   // Check if item is in an active flash deal
   let displayPrice = item.price;
@@ -62,9 +62,12 @@ export function getShareUrl(item: MenuItem, siteUrl: string, settings: StoreSett
     const separator = siteUrl.includes('?') ? '&' : '?';
     productShareUrl = `${siteUrl}${separator}product=${item.id}&v=${cacheBuster}`;
   }
-  msg += `شاهد المنتج واطلب الآن:\n${productShareUrl}\n\n`;
+  
+  msg += `شاهد الصنف واطلب الآن:\n${productShareUrl}\n\n`;
+  
   if (cleanNumber) {
     msg += `أو تواصل مباشرة: wa.me/${cleanNumber}`;
   }
+  
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
 }

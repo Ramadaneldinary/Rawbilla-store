@@ -36,11 +36,7 @@ export default async function handler(req, res) {
         if (products && products.length > 0) {
           const item = products[0];
           
-          let appLogoUrl = 'https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww';
-          const matchLogo = html.match(/<meta property="og:image" content="([^"]*)" \/>/);
-          if (matchLogo && matchLogo[1]) {
-            appLogoUrl = matchLogo[1];
-          }
+          let appLogoUrl = `${protocol}://${host}/logo.png`;
 
           const safeTitle = (item.name || '').replace(/"/g, '&quot;');
           const safeDesc = (item.description || '').replace(/"/g, '&quot;');

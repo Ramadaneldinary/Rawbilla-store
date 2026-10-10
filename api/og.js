@@ -36,31 +36,20 @@ export default async function handler(req, res) {
         if (products && products.length > 0) {
           const item = products[0];
           
-          let imgUrl = (item.images && item.images.length > 0) ? item.images[0] : '';
-          if (imgUrl.includes('drive.google.com')) {
-            const driveRegexes = [
-              /drive\.google\.com\/file\/d\/([^/]+)/,
-              /drive\.google\.com\/open\?id=([^&]+)/,
-              /drive\.google\.com\/uc\?.*id=([^&]+)/,
-              /drive\.google\.com.*\/d\/([a-zA-Z0-9_-]+)/
-            ];
-            for (const regex of driveRegexes) {
-              const match = imgUrl.match(regex);
-              if (match && match[1]) {
-                imgUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
-                break;
-              }
-            }
+          let appLogoUrl = 'https://lh3.googleusercontent.com/d/1vz13kD11gFg38ik-U2Be7S0_0pvy7-ww';
+          const matchLogo = html.match(/<meta property="og:image" content="([^"]*)" />/);
+          if (matchLogo && matchLogo[1]) {
+            appLogoUrl = matchLogo[1];
           }
 
           const safeTitle = (item.name || '').replace(/"/g, '&quot;');
           const safeDesc = (item.description || '').replace(/"/g, '&quot;');
-          const safeImg = imgUrl.replace(/"/g, '&quot;');
+          const safeImg = appLogoUrl;
 
-          html = html.replace(/<meta property="og:title" content="[^"]*" \/>/g, `<meta property="og:title" content="${safeTitle}" />`);
-          html = html.replace(/<meta property="og:description" content="[^"]*" \/>/g, `<meta property="og:description" content="${safeDesc}" />`);
-          html = html.replace(/<meta property="og:image" content="[^"]*" \/>/g, `<meta property="og:image" content="${safeImg}" />`);
-          html = html.replace(/<title>.*<\/title>/, `<title>${safeTitle} | Rawbilla Store</title>`);
+          html = html.replace(/<meta property="og:title" content="[^"]*" />/g, `<meta property="og:title" content="${safeTitle}" />`);
+          html = html.replace(/<meta property="og:description" content="[^"]*" />/g, `<meta property="og:description" content="${safeDesc}" />`);
+          html = html.replace(/<meta property="og:image" content="[^"]*" />/g, `<meta property="og:image" content="${safeImg}" />`);
+          html = html.replace(/<title>.*</title>/, `<title>${safeTitle} | Rawbilla Store</title>`);
           
           html = html.replace('</head>', `
     <meta name="twitter:card" content="summary_large_image" />
